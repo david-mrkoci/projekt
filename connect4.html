@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf8">
+    <title>Connect four</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+</head>
+<body>
+    <h1>Connect four</h1>
+
+    <br>
+    Korisničko ime: <input type="text" id="ime"><br>
+    <!-- Broj stupaca: <input type="text" id="nCols"><br>
+    Broj mina: <input type="text" id="nMines"><br> -->
+    <input type="button" id="start" value = "Start"><br>
+
+    <!-- Preostali broj mina: <div id="ostaloMina"></div>
+    <h2 id="poruka"></h2> -->
+
+    <script>
+    var id = false; 
+    var mojred;
+    var blockwidth = 30;
+    var blockheight = 30;
+    var nRows=9, nCols=9, nMines=10;
+    var id="nema";
+    var cnv;
+    var ctx;
+    var ploca;
+    var ostaloMina = 0;
+    var boje = {1: "blue", 2 : "orange", 3 : "green", 4: "crimson", 
+        5: "purple", 6: "brown", 7: "olive", 8: "gold", 
+        "?": "black", undefined : "black"};
+$( window ).on("load", function()
+{
+    $( "#start" ).on( "click", function(e)
+    {
+        var uspjeh = false;
+        $.ajax(
+        {
+            url: "https://rp2.studenti.math.hr/~zbujanov/dz4/id.php",
+            data:
+            {
+                nRows: nRows,
+                nCols: nCols,
+                nMines: nMines
+            },
+            success: function( data )
+            {
+                console.log(data);
+                uspjeh = data.uspjeh;
+                id = data.id;
+                mojred = data.mojred;
+            },
+            error: function( xhr, status )
+            {
+                if( status !== null )
+                    console.log( "Greška prilikom Ajax poziva: " + status );
+            }
+        } );
+        if (uspjeh)
+        {
+            igra();
+        }
+    } );
+
+    function igra()
+    {
+        pripremiPlocu();
+        //ploca = [];
+        //for(var i=0; i<nRows; ++i) {
+        //    ploca[i] = new Array(nCols);
+        //}
+    }
+
+    function canvasclick(e) 
+    {
+        if(!mojred)
+            return;
+        var rect = $("#cnv").get(0).getBoundingClientRect();
+        var x = e.clientX - rect.left,
+            y = e.clientY - rect.top;
+        col= Math.floor(x/blockwidth);
+        row= Math.floor(y/blockheight);
+        console.log("klik na polje: ", row, col);
+        var uspjeh = false;
+        if (e.button == 0) 
+        {
+            $.ajax(
+            {
+                url: "https://rp2.studenti.math.hr/~zbujanov/dz4/cell.php",
+                data:
+                {
+                    id: id,
+                    row: row,
+                    col: col
+                },
+                success: function( data )
+                {
+                    console.log(data);
+                    if (data.uspjeh) 
+                    {
+                        mojred = false;
+                        obradiData(data);
+                    }
+                },
+                error: function( xhr, status )
+                {
+                    if( status !== null )
+                        console.log( "Greška prilikom Ajax poziva: " + status );
+                }
+            } );
+        }
+    };
+    function obradiData(data)//lijevi klik
+    {
+        if (data.boom == true)
+        {
+            $("#poruka").html("IZGUBILI STE!");
+            obojiPravokutnik(row, col, "red");
+            $("#cnv").off("mousedown", canvasclick);
+            alert("IZGUBILI STE!");
+        }
+        else
+        {
+            data.cells.forEach(function(cell)
+            {
+                if (ploca[cell.row][cell.col] === "?")
+                {   
+                    $("#ostaloMina").html(++ostaloMina);
+                }
+                ploca[cell.row][cell.col] = cell.mines;
+                obojiPravokutnik(cell.row, cell.col, "#ddd");
+                if (cell.mines)
+                    napisiUPravokutnik(cell.row, cell.col, cell.mines);
+            });
+            if (gotovo()) 
+            {
+                $("#poruka").html("POBIJEDILI STE!");
+                $("#cnv").off("mousedown", canvasclick);
+                alert("POBIJEDILI STE!");
+            }
+        }
+    }
+    function gotovo()
+    {
+        var b=0;
+        for(var i=0; i<nRows; ++i)
+            for(var j=0; j<nCols; ++j)
+                if (ploca[i][j] !== undefined && ploca[i][j] !== "?")
+                    ++b;
+        return b == nRows*nCols - nMines;
+    }
+    function obojiPravokutnik(row, col, boja)
+    {
+        ctx.fillStyle = boja;
+        ctx.fillRect( col*blockwidth+1, row*blockheight+1, 
+            blockwidth-2, blockheight-2 );
+    }
+    function napisiUPravokutnik(row, col, text)
+    {
+        ctx.fillStyle = boje[text];
+        ctx.font = "30px Verdana";
+        ctx.fillText( text, col*blockwidth+4, (row+1)*blockheight-2 );
+    }
+
+    function pripremiPlocu()
+    {
+        $('#cnv').remove();
+        var canvasheight = nRows*blockheight;
+        var canvaswidth = nCols*blockwidth;
+        $("body").append(
+            $("<canvas>")
+                .attr('id', 'cnv')
+                .attr('width', canvaswidth + "px")
+                .attr('height', canvasheight + "px")
+                .css('border' , "1px solid #000000")
+                .on("contextmenu", function() { return false; })
+                .on('mousedown', canvasclick )
+        );
+
+        ctx = $('#cnv').get(0).getContext( "2d" );
+        ctx.fillStyle = '#9F9F9F';
+        ctx.fillRect(0, 0, canvaswidth, canvasheight);
+
+        ctx.beginPath();
+        for(var i=0; i<=nCols; ++i)
+        {
+            ctx.moveTo(i*blockwidth, 0);
+            ctx.lineTo(i*blockwidth, canvasheight);
+            ctx.stroke();
+        }
+        for(var i=0; i<=nRows; ++i)
+        {
+            ctx.moveTo(0, i*blockheight);
+            ctx.lineTo(canvaswidth, i*blockheight);
+        }
+        ctx.stroke();
+    }
+} );
+
+    </script>
+</body>
+</html>
