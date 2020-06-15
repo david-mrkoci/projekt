@@ -1,3 +1,13 @@
+<!-- 
+znači:
+klijent šalje ime i dobiva id(isti kao poslano ime zasad),
+ mojred(true/false) i uspjeh(true).
+ Tada započinje igru (crta ploču).
+ Kada klikne na canvas, izračuna se koji je to stupac i na koju visinu se mora ubaciti.
+Gleda je li pobijedio i onda šalje id, kraj(true/false), row, col serveru i čeka
+na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
+ -->
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -20,19 +30,20 @@
     <script>
     var id = false; 
     var mojred;
-    var blockwidth = 100;
-    var blockheight = 100;
-    var nRows=7, nCols=7, nMines=10;
+    var blockwidth = 30;
+    var blockheight = 30;
+    var nRows=20, nCols=20;
     var id="nema";
     var cnv;
     var ctx;
     var ploca;
-    var ostaloMina = 0;
     var boje = {1: "blue", 2 : "orange", 3 : "green", 4: "crimson", 
         5: "purple", 6: "brown", 7: "olive", 8: "gold", 
         "?": "black", undefined : "black"};
+
 $( window ).on("load", function()
 {
+    //klikom na gumb start serveru se šalje ime 
     $( "#start" ).on( "click", function(e)
     {
         var uspjeh = false;
@@ -51,12 +62,10 @@ $( window ).on("load", function()
                 uspjeh = data.uspjeh;
                 id = data.id;
                 mojred = data.mojred;
-                console.log("Prije ifa");
                 if (uspjeh)
                 {
                     igra();
                 }
-                console.log("nakon ifa");
             },
             error: function( xhr, status )
             {
@@ -69,57 +78,149 @@ $( window ).on("load", function()
 
     function igra()
     {
-        pripremiPlocu();
-        //ploca = [];
-        //for(var i=0; i<nRows; ++i) {
-        //    ploca[i] = new Array(nCols);
-        //}
+        nacrtajPlocu();
+        ploca = [];
+        for(var i=0; i<nRows; ++i) {
+           ploca[i] = new Array(nCols);
+           //ploca je dimenzija nRows x nCols 
+           //undefined na svakom mjestu
+        }                   
     }
 
-    function canvasclick(e) 
+    function canvasclick(e) //lijevi klik
     {
-        if(!mojred)
+        if(!mojred)//nije moj red => ništa se ne događa
             return;
         var rect = $("#cnv").get(0).getBoundingClientRect();
-        var x = e.clientX - rect.left,
+        var x = e.clientX - rect.left,//lokacija klika je (x,y)
             y = e.clientY - rect.top;
-        col= Math.floor(x/blockwidth);
-        row= Math.floor(y/blockheight);
-        console.log("klik na polje: ", row, col);
-        var uspjeh = false;
-        if (e.button == 0) 
+        col= Math.floor(x/blockwidth);// stupac na koji je kliknuto
+        row= topRow(col);//nađi redak na koji mora ići ide žeton
+        if (row < 0)//nema mjesta u tom stupcu
+            return;
+        console.log("ubacujem na polje: ", row, col);
+        ubaci(row, col, "red");//treci arg je igrac=boja
+        var kraj = gotovo(row, col);//je li gotovo
+        if (kraj)
         {
-            $.ajax(
-            {
-                url: "server.php",
-                data:
-                {
-                    id: id,
-                    col: col
-                },
-                success: function( data )
-                {
-                    console.log(data);
-                    if (data.uspjeh) 
-                    {
-                        mojred = false;
-                        obradiData(data);
-                    }
-                },
-                error: function( xhr, status )
-                {
-                    if( status !== null )
-                        console.log( "Greška prilikom Ajax poziva: " + status );
-                }
-            } );
+            console.log("pobjeda");
+            alert("POBJEDILI STE!");
         }
+        mojred = false;
+        var uspjeh = false;
+        $.ajax(//šaljem svoj potez i čekam potez drugog igrača
+        {
+            url: "../server/username.php", //mozda druga skripta
+            data:
+            {
+                id: id,
+                row: row,
+                col: col,
+                kraj: kraj
+            },
+            success: function( data )//u data je potez drugog igrača
+            {
+                console.log(data);
+                if (data.uspjeh) 
+                {
+                    ubaci(data.row, data.col, "yellow");
+                    if (data.kraj) 
+                    {
+                        console.log("poraz");
+                        alert("IZGUBILI STE!");
+                    }
+                    else
+                        mojred=true;
+                }
+            },
+            error: function( xhr, status )
+            {
+                if( status !== null )
+                    console.log( "Greška prilikom Ajax poziva: " + status );
+            }
+        } );
     };
-    function obradiData(data)//lijevi klik
+    function jeLiStupacPun(col)
     {
-        //nacrtati krug na mjesto data.row, data.col
+        return ploca[0][col] !== undefined;
+    }
+    function topRow(col)//vraca -1 ako nema mjesta više
+    {
+        var corrow = nRows-1;
+        while (corrow>=0 && ploca[corrow][col] !== undefined) corrow--;
+        return corrow;
+    }
+    function gotovo(row, col)
+    {
+        //funkcija vraca true ako se postigao pogodak
+        //ubacivanjem na mjesto row, col
+        //pogodak se dogodio ako je u nekom od sljedeca 4 smjera
+        //broj istovrsnih zetona oko mjesta (row, col) visekratnik
+        //broja 4
+        var smjerovi = [
+            [ [-1,0], [1,0] ],//gore,dolje
+            [ [0, -1], [0,1] ],//lijevo,desno
+            [ [-1,-1], [1,1] ],//gorelijevo,doljedesno
+            [ [1,-1], [-1,1] ],//doljelijevo,goredesno
+        ];
+        var igrac = ploca[row][col];
+        var bodovi = 0;
+        smjerovi.forEach(function(smjer)
+        {
+            smjerrow = smjer[0][0];
+            smjercol = smjer[0][1];
+            i = 1;
+            while(//idem koliko mogu u prvom smjeru
+                row + i * smjerrow >= 0 && row + i * smjerrow <nRows &&
+                col + i * smjercol >= 0 && col + i * smjercol <nCols &&
+                ploca[ row + i * smjerrow ][ col + i * smjercol ] === igrac
+                ) 
+                ++i;
+            smjerrow = smjer[1][0];
+            smjercol = smjer[1][1];
+            j = 1;
+            while(//idem koliko mogu u drugom smjeru
+                col + j * smjercol >= 0 && col + j * smjercol <nCols &&
+                row + j * smjerrow >= 0 && row + j * smjerrow <nRows &&
+                ploca[ row + j * smjerrow ][ col + j * smjercol ] === igrac
+                ) 
+                ++j;
+            //console.log("i+j-1 = ", i+j-1);
+            //i,j >1 0
+            i = (i - 1) % 4;//-1 jer se mjesto (row, col) broji
+            j = (j - 1) % 4;//-1 jer se mjesto (row, col) broji
+
+            var brUzastopnih = (i+j + 1);
+            if( brUzastopnih >= 4)
+                ++bodovi;
+        });
+        console.log("bodovi : ", bodovi);
+        return bodovi != 0;
+    }
+    //ubacuje igraca na plocu na polje (row, col)
+    //igrac mora biti boja!!
+    function ubaci(row, col, igrac)//lijevi klik
+    {
+        ploca[row][col] = igrac;
+        //console.log(ploca);
+        nacrtajKrug(row, col, igrac);
+    }
+    function nacrtajKrug(row, col, color)
+    {
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        ctx.arc(
+            col*blockwidth + blockwidth/2,
+            row*blockheight + blockheight/2, 
+            blockwidth/2,
+            0,
+            2*Math.PI
+            );
+        ctx.fill();
+        ctx.stroke();
     }
 
-    function pripremiPlocu()
+    function nacrtajPlocu()//crta praznu plocu
     {
         $('#cnv').remove();
         var canvasheight = nRows*blockheight;
@@ -139,13 +240,13 @@ $( window ).on("load", function()
         ctx.fillRect(0, 0, canvaswidth, canvasheight);
 
         ctx.beginPath();
-        for(var i=0; i<=nCols; ++i)
+        for(var i=0; i<=nCols; ++i)//crta vertikalne crte
         {
             ctx.moveTo(i*blockwidth, 0);
             ctx.lineTo(i*blockwidth, canvasheight);
             ctx.stroke();
         }
-        for(var i=0; i<=nRows; ++i)
+        for(var i=0; i<=nRows; ++i)//crta horizontalne crte
         {
             ctx.moveTo(0, i*blockheight);
             ctx.lineTo(canvaswidth, i*blockheight);

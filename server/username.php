@@ -18,12 +18,17 @@ function sendJSONandExit( $message )
     exit( 0 );
 }
 
-$ime = $_GET[ 'ime' ];
+$ime = $_GET[ 'ime' ] ?? "server: nemam ime";
 
 $message = [];
 $message[ 'uspjeh' ] = true;
 $message[ 'id' ] = $ime;
 $message[ 'mojred' ] = true;
+
+$message[ 'row' ] = 2;
+$message[ 'col' ] = 2;
+//sleep(2);
+
 sendJSONandExit( $message );
 
 ?>
