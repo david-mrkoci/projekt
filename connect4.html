@@ -40,7 +40,7 @@ $( window ).on("load", function()
         console.log(ime);
         $.ajax(
         {
-            url: "server.php",
+            url: "username.php",
             data:
             {
                 ime: ime
@@ -51,6 +51,12 @@ $( window ).on("load", function()
                 uspjeh = data.uspjeh;
                 id = data.id;
                 mojred = data.mojred;
+                console.log("Prije ifa");
+                if (uspjeh)
+                {
+                    igra();
+                }
+                console.log("nakon ifa");
             },
             error: function( xhr, status )
             {
@@ -58,10 +64,7 @@ $( window ).on("load", function()
                     console.log( "Greška prilikom Ajax poziva: " + status );
             }
         } );
-        if (uspjeh)
-        {
-            igra();
-        }
+        
     } );
 
     function igra()

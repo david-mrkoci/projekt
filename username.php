@@ -18,7 +18,6 @@ function sendJSONandExit( $message )
     exit( 0 );
 }
 
-
 $ime = $_GET[ 'ime' ];
 
 $message = [];
