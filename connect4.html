@@ -20,9 +20,9 @@
     <script>
     var id = false; 
     var mojred;
-    var blockwidth = 30;
-    var blockheight = 30;
-    var nRows=9, nCols=9, nMines=10;
+    var blockwidth = 100;
+    var blockheight = 100;
+    var nRows=7, nCols=7, nMines=10;
     var id="nema";
     var cnv;
     var ctx;
@@ -36,14 +36,14 @@ $( window ).on("load", function()
     $( "#start" ).on( "click", function(e)
     {
         var uspjeh = false;
+        var ime = $("#ime").val();
+        console.log(ime);
         $.ajax(
         {
-            url: "https://rp2.studenti.math.hr/~zbujanov/dz4/id.php",
+            url: "server.php",
             data:
             {
-                nRows: nRows,
-                nCols: nCols,
-                nMines: nMines
+                ime: ime
             },
             success: function( data )
             {
@@ -88,11 +88,10 @@ $( window ).on("load", function()
         {
             $.ajax(
             {
-                url: "https://rp2.studenti.math.hr/~zbujanov/dz4/cell.php",
+                url: "server.php",
                 data:
                 {
                     id: id,
-                    row: row,
                     col: col
                 },
                 success: function( data )
@@ -114,54 +113,7 @@ $( window ).on("load", function()
     };
     function obradiData(data)//lijevi klik
     {
-        if (data.boom == true)
-        {
-            $("#poruka").html("IZGUBILI STE!");
-            obojiPravokutnik(row, col, "red");
-            $("#cnv").off("mousedown", canvasclick);
-            alert("IZGUBILI STE!");
-        }
-        else
-        {
-            data.cells.forEach(function(cell)
-            {
-                if (ploca[cell.row][cell.col] === "?")
-                {   
-                    $("#ostaloMina").html(++ostaloMina);
-                }
-                ploca[cell.row][cell.col] = cell.mines;
-                obojiPravokutnik(cell.row, cell.col, "#ddd");
-                if (cell.mines)
-                    napisiUPravokutnik(cell.row, cell.col, cell.mines);
-            });
-            if (gotovo()) 
-            {
-                $("#poruka").html("POBIJEDILI STE!");
-                $("#cnv").off("mousedown", canvasclick);
-                alert("POBIJEDILI STE!");
-            }
-        }
-    }
-    function gotovo()
-    {
-        var b=0;
-        for(var i=0; i<nRows; ++i)
-            for(var j=0; j<nCols; ++j)
-                if (ploca[i][j] !== undefined && ploca[i][j] !== "?")
-                    ++b;
-        return b == nRows*nCols - nMines;
-    }
-    function obojiPravokutnik(row, col, boja)
-    {
-        ctx.fillStyle = boja;
-        ctx.fillRect( col*blockwidth+1, row*blockheight+1, 
-            blockwidth-2, blockheight-2 );
-    }
-    function napisiUPravokutnik(row, col, text)
-    {
-        ctx.fillStyle = boje[text];
-        ctx.font = "30px Verdana";
-        ctx.fillText( text, col*blockwidth+4, (row+1)*blockheight-2 );
+        //nacrtati krug na mjesto data.row, data.col
     }
 
     function pripremiPlocu()
