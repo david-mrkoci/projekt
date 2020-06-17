@@ -1,26 +1,19 @@
 <?php
 /*
 	Input:
-        $_GET[ 'id' ] - ???
+        $_GET[ 'id' ] - username1_username2_idvrijeme (za prepoznavanje igre)
         $_GET[ 'row' ] - u koji red treba dodati krug
         $_GET[ 'col' ] - u koji stupac treba dodati krug
-        $_GET[ 'kraj' ] - je li igra gotova
-        $_GET[ 'usernames' ] - string imena igrača koji su upareni
-                               (npr. ivan_marko) 
+        $_GET[ 'kraj' ] - true/false je li igra gotova
+        ??????????? $_GET[ 'lastmodif' ]- nisam siguran da je potrebno ?????????
 
     Output: JSON sa svojstvima (natrag se šalje potez igrača 
                                 koji nije pozvao skriptu)
-        uspjeh - true/false
+        kraj - true/false je li igra gotova
         row - u koji red treba dodati krug
         col - u koji stupac treba dodati krug
-        mojred - true/false
-        (tu možda treba dodati još neke)
-
-    - Treba možda dodati boje??
-    - Trebalo bi i username-ove slati da se zna koju datoteku treba obraditi
-      (to treba pamtiti na klijentu)
-    - Problem: dok jedna skripta ceka u while petlji, druga pokušava
-               pristupiti istoj datoteci 
+        ??????????? timestamp ??????
+        ??????????? error - poruka o greskama ???????????
 */
 
 function sendJSONandExit( $message )
@@ -32,51 +25,77 @@ function sendJSONandExit( $message )
     exit( 0 );
 }
 
-$ime = $_GET[ 'ime' ] ?? "server: nemam ime";
-$id = $_GET[ 'id' ];
-$row = $_GET[ 'row' ];
-$col = $_GET[ 'col' ];
-$kraj = $_GET[ 'kraj' ];
-$usernames = $_GET[ 'usernames' ]
+$id = isset( $_GET[ 'id' ] ) ? $_GET[ 'id' ] : '';
+$row = isset( $_GET[ 'row' ] ) ? $_GET[ 'row' ] : '';
+$col = isset( $_GET[ 'col' ] ) ? $_GET[ 'col' ] : '';
+$kraj = isset( $_GET[ 'kraj' ] ) ? $_GET[ 'kraj' ] : '';
+$lastmodif = isset( $_GET[ 'lastmodif' ] ) ? $_GET[ 'lastmodif' ] : 0;
 
 //-------------------------------------------------------------------------
-// zapisujemo poslane podatke u datoteku (username1_username2.txt)
-// koja čuva zadnji potez
+// zapisujemo poslane podatke u datoteku "username1_username2_idvrijeme.log"
+// koja čuva zadnji potez u obliku: row(int) col(int) kraj(bool)
 //-------------------------------------------------------------------------
 
-$filename = $usernames . ".txt";
-$my_move = implode(";", [$ime, $id, $row, $col, $kraj]);
+$filename = $id . ".log";
+$my_move = implode(" ", array($row, $col, $kraj));
 
-file_put_contents( $filename, $my_move);
-
-//-------------------------------------------------------------------------
-// pokrenemo while petlju koja čeka promjenu u datoteci (to je novi potez)
-//-------------------------------------------------------------------------
-
-$change = false;
-while( $change === false)
+$error = "";
+if( !file_exists( $filename ) )
+    $error = $error . "Datoteka " . $filename . " ne postoji. ";
+else
 {
-    $new_move = file_get_contents($filename);
-    if ( $new_move !== $my_move )
-        $change = true;
+    if( !is_readable( $filename ) )
+        $error = $error . "Ne mogu čitati iz datoteke " . $filename . ". ";
+
+    if( !is_writable( $filename ) )
+        $error = $error . "Ne mogu pisati u datoteku " . $filename . ". ";
 }
 
-//-------------------------------------------------------------------------
-// novi potez šaljemo natrag igraču koji je pozvao skriptu
-//-------------------------------------------------------------------------
+if( $error !== "" )
+{
+    $response = [];
+    $response[ 'error' ] = $error;
 
-$move_array = explode(";", $new_move);
-$new_row = $move_array[2];
-$new_col = $move_array[3];
+    sendJSONandExit( $response );
+}
 
-$message = [];
-$message[ 'uspjeh' ] = true;
-$message[ 'row' ] = $new_row;
-$message[ 'col' ] = $new_col;
-$message[ 'mojred' ] = true;
+if( $id != '' && $col = '' && $row = '' && $kraj = '' )
+{
+    // spremamo potez u datoteku
+    file_put_contents( $filename, $my_move);
 
-//sleep(2);
+    // kada je zadnji put promjenjena datoteka s potezima?
+    $currentmodif = filemtime( $filename );
 
-sendJSONandExit( $message );
+    // vrtimo petlju dok datoteka nije modificirana
+    while ( $currentmodif <= $lastmodif )
+    {
+        usleep( 1000 );
+        clearstatcache();
+        $currentmodif = filemtime( $filename );
+    }
+
+    // Ako smo ovdje, znamo da je datoteka promjenjena i u nju upisan novi potez
+    // Spremimo ga i posaljemo natrag
+
+    $response = array();
+    $new_move = explode( " ", file_get_contents( $filename ) );
+    $response[ 'row' ] = $new_move[0];
+    $response[ 'col' ] = $new_move[1];
+    $response[ 'kraj' ] = $new_move[2];
+    $response[ 'timestamp' ] = $currentmodif;
+
+    // Ako je poslan kraj = true brisemo datoteku s potezima jer je igra gotova
+    unlink($filename);
+
+    sendJSONandExit( $response );
+}
+else
+{
+    $response = [];
+    $response[ 'error' ] = "Potez nije dobro poslan.";
+
+    endJSONandExit( $response );
+}
 
 ?>

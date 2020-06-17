@@ -1,13 +1,12 @@
 <?php
 /*
 	Input:
-		$_GET[ 'ime' ] - username igraca
+        $_GET[ 'ime' ] - username igraca
+        ??????????? $_GET[ 'lastmodif' ]- nisam siguran da je potrebno ?????????
 
 	Output: JSON sa svojstvima
-        uspjeh - true/false
-        id - za sad samo vraca ime
+        id - vraca ime igre (npr. username1_username2_idvrijeme)
         mojred - true/false
-        ? ime2 - ime drugog igrača
 */
 
 function sendJSONandExit( $message )
@@ -19,39 +18,120 @@ function sendJSONandExit( $message )
     exit( 0 );
 }
 
-$ime = $_GET[ 'ime' ] ?? "server: nemam ime";
+$ime = isset($_GET[ 'ime' ]) ? $_GET[ 'ime' ] : '';
+$lastmodif = isset( $_GET['lastmodif'] ) ? $_GET['lastmodif'] : 0;
 
 //--------------------------------------------------------------------------
-// Pogledamo datoteku s imenima (usernames.txt), postoji li igrač koji čeka.
-// Ako da, maknemo ga i posaljemo njegovo ime natrag.
-// U usernames.txt imamo popis imena odvojenih s ";".
+// Pogledamo datoteku s imenima (usernames.txt).
+// Ako postoji vec zapisan id, cekamo da se datoteka ocisti.
+// Ako je samo jedno ime u datoteci, zapisujemo id i vracamo poruku.
+// Ako je datoteka prazna, zapisjuemo ime i cekamo da se u datoteku zapise id.
 //--------------------------------------------------------------------------
 
-$usernames = file_get_contents("usernames.txt");
-// ako je prazno dodamo ovo ime
-if ($usernames === "")
-    file_put_contents("usernames.txt", $ime);
+$filename = "usernames.txt";
+$response = [];
+
+$error = "";
+if( !file_exists( $filename ) )
+    $error = $error . "Datoteka " . $filename . " ne postoji. ";
 else
-{// inače maknemo prvog u redu
-    $users = explode(";", $usernames);
-    $ime2 = $users[0];
-    // pomaknemo ih natrag, implodamo i zapisemo u datoteku
+{
+    if( !is_readable( $filename ) )
+        $error = $error . "Ne mogu čitati iz datoteke " . $filename . ". ";
+
+    if( !is_writable( $filename ) )
+        $error = $error . "Ne mogu pisati u datoteku " . $filename . ". ";
+} 
+
+if( $error !== "" )
+{
+    $response = [];
+    $response[ 'error' ] = $error;
+
+    sendJSONandExit( $response );
 }
 
-///////////////////////////////
-// DATOTEKE NISU DOBAR NAČIN // zato sam tu stal...
-///////////////////////////////
+function cekaj_promjenu($filename, $lastmodif)
+{
+    $currentmodif = filemtime( $filename );
+    while( $currentmodif <= $lastmodif )
+    {
+        usleep( 10000 );
+        clearstatcache();
+        $currentmodif = filemtime( $filename );
+    }
+    return 0;
+}
 
-$message = [];
-$message[ 'uspjeh' ] = true;
-$message[ 'id' ] = $ime;
-$message[ 'mojred' ] = true;
-$message[ 'ime2' ] = $ime2
+if( $ime != '' )
+{   
+    $file_content = file_get_contents( $filename );
 
-$message[ 'row' ] = 2;
-$message[ 'col' ] = 2;
-//sleep(2);
+    //---------------------------------------------------------------------------
+    // Je li id vec zapisan u datoteci?
+    //---------------------------------------------------------------------------
+    
+    $pattern = ""; // treba dodati regularni izraz za alphanum_aplhanum_num
+    if ( preg_match( $pattern, $file_content ) )
+    {
+        // Sad cekamo promjenu u datoteci
+        cekaj_promjenu( $filename, $lastmodif );
+        // Dogodila se promjena, zapisujemo svoje ime i cekamo promjenu
+        file_put_contents( $filename, $ime );
+        $lastmodif = filemtime( $filename );
+        cekaj_promjenu( $filename, $lastmodif );
+        // U datoteci je zapisan id
+        $id = file_get_contents($filename);
+        $response [ 'id' ] = $id;
+        // prvi smo na red jer smo prvi zapisani
+        $response[ 'mojred' ] = true;
+        file_put_contents($filename, "");
+    }
+    elseif
+    {
+        //---------------------------------------------------------------------------
+        // Je li jedno ime vec zapisano u datoteci?
+        //---------------------------------------------------------------------------
 
-sendJSONandExit( $message );
+        $pattern = ""; // treba dodati regularni izraz za SAMO alphanum
+        if ( preg_match( $pattern, $file_content ) )
+        {
+            // Nadopunjujemo file s id-om i saljemo ga natrag
+            $idvrijeme = date();
+            $id = $file_content . "_" . $ime . "_" . $idvrijeme;
+            $response [ 'id' ] = $id;
+            // drugi smo na redu jer smo drugi zapisani
+            $response[ 'mojred' ] = false;
+            file_put_contents( $filename, $id );
+        }
+    }
+    elseif
+    {
+        //---------------------------------------------------------------------------
+        // Je li datoteka prazna?
+        //---------------------------------------------------------------------------
+
+        if ( $file_content === "" )
+        {
+            // Zapisujemo ime u datoteku i cekamo primjenu
+            file_put_contents( $filename, $ime );
+            $lastmodif = filemtime( $filename );
+            cekaj_promjenu( $filename, $lastmodif );
+            // U datoteci je zapisan id
+            $id = file_get_contents($filename);
+            $response [ 'id' ] = $id;
+            // prvi smo na red jer smo prvi zapisani
+            $response[ 'mojred' ] = true;
+            file_put_contents($filename, "");
+        }
+    }
+}
+else
+{
+    $response = [];
+    $response[ 'error' ] = "Poruka nema definirano polje ime ili polje msg.";
+
+    sendJSONandExit( $response );
+}
 
 ?>
