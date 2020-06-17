@@ -125,6 +125,8 @@ if( $ime != '' )
             file_put_contents($filename, "");
         }
     }
+
+    sendJSONandExit( $response );
 }
 else
 {
