@@ -34,6 +34,7 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
     var blockheight = 30;
     var nRows=20, nCols=20;
     var id="nema";
+    var jaboja, protivnikboja;
     var cnv;
     var ctx;
     var ploca;
@@ -57,12 +58,14 @@ $( window ).on("load", function()
                 ime: ime
             },
             success: function( data )
-            {
+            {//prima boja id, mojred
                 console.log(data);
                 uspjeh = data.uspjeh;
                 id = data.id;
                 mojred = data.mojred;
-                if (uspjeh)
+                jaboja = data.boja;
+                protivnikboja = (jaboja === "red" ? "yellow" : "red");
+                if (true)
                 {
                     igra();
                 }
@@ -99,7 +102,7 @@ $( window ).on("load", function()
         if (row < 0)//nema mjesta u tom stupcu
             return;
         console.log("ubacujem na polje: ", row, col);
-        ubaci(row, col, "red");//treci arg je igrac=boja
+        ubaci(row, col, jaboja);//treci arg je igrac=boja
         var kraj = gotovo(row, col);//je li gotovo
         if (kraj)
         {
@@ -110,7 +113,7 @@ $( window ).on("load", function()
         var uspjeh = false;
         $.ajax(//šaljem svoj potez i čekam potez drugog igrača
         {
-            url: "../server/username.php", //mozda druga skripta
+            url: "../server/move.php", //mozda druga skripta
             data:
             {
                 id: id,
@@ -121,19 +124,19 @@ $( window ).on("load", function()
             success: function( data )//u data je potez drugog igrača
             {
                 console.log(data);
-                if (data.uspjeh) 
+                if (!kraj) //prima potez samo ako nije pobijedio, inače prima nešto random
                 {
-                    ubaci(data.row, data.col, "yellow");
+                    ubaci(data.row, data.col, protivnikboja);
                     if (data.kraj) 
                     {
                         console.log("poraz");
                         alert("IZGUBILI STE!");
                     }
                     else
-                        mojred=true;
+                        mojred=true; //omoguci potez
                 }
             },
-            error: function( xhr, status )
+            error: function( xhr, status )//mozda treba timeout obraditi
             {
                 if( status !== null )
                     console.log( "Greška prilikom Ajax poziva: " + status );
@@ -199,11 +202,11 @@ $( window ).on("load", function()
     }
     //ubacuje igraca na plocu na polje (row, col)
     //igrac mora biti boja!!
-    function ubaci(row, col, igrac)//lijevi klik
+    function ubaci(row, col, boja)//lijevi klik
     {
-        ploca[row][col] = igrac;
+        ploca[row][col] = boja;
         //console.log(ploca);
-        nacrtajKrug(row, col, igrac);
+        nacrtajKrug(row, col, boja);
     }
     function nacrtajKrug(row, col, color)
     {

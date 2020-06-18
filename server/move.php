@@ -37,7 +37,7 @@ $id = $_GET[ 'id' ];
 $row = $_GET[ 'row' ];
 $col = $_GET[ 'col' ];
 $kraj = $_GET[ 'kraj' ];
-$usernames = $_GET[ 'usernames' ]
+$usernames = $_GET[ 'usernames' ];
 
 //-------------------------------------------------------------------------
 // zapisujemo poslane podatke u datoteku (username1_username2.txt)
