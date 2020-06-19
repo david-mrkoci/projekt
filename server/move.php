@@ -2,8 +2,8 @@
 /*
 	Input:
         $_GET[ 'id' ] - username1_username2_idvrijeme (za prepoznavanje igre)
-        $_GET[ 'row' ] - u koji red treba dodati krug
-        $_GET[ 'col' ] - u koji stupac treba dodati krug
+        $_GET[ 'row' ] - u koji red treba dodati krug, -1 ako nije nas red (dummy potez)
+        $_GET[ 'col' ] - u koji stupac treba dodati krug, -1 ako nije nas red
         $_GET[ 'kraj' ] - true/false je li igra gotova
 
     Output: JSON sa svojstvima (natrag se šalje potez igrača 
@@ -59,7 +59,10 @@ if( $error !== "" )
 if( $id != '' && $col != '' && $row != '' && $kraj != '' )
 {
     // spremamo potez u datoteku
-    file_put_contents( $filename, $my_move);
+    if ($col == -1)
+        file_put_contents( $filename, "");
+    else
+        file_put_contents( $filename, $my_move);
 
     // kada je zadnji put promjenjena datoteka s potezima?
     $currentmodif = filemtime( $filename );
