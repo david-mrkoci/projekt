@@ -50,6 +50,11 @@ $( window ).on("load", function()
         var uspjeh = false;
         var ime = $("#ime").val();
         console.log(ime);
+        if (! (/^[a-zA-Z0-9]{2,30}$/.test(ime) ))
+        {
+            alert("Korisničko ime se mora sastojati od slova i znamenki");
+            return;
+        }
         $.ajax(
         {
             url: "../server/username.php",
