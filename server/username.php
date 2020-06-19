@@ -2,7 +2,6 @@
 /*
 	Input:
         $_GET[ 'ime' ] - username igraca
-        ??????????? $_GET[ 'lastmodif' ]- nisam siguran da je potrebno ?????????
 
 	Output: JSON sa svojstvima
         id - vraca ime igre (npr. username1_username2_idvrijeme)
@@ -19,7 +18,7 @@ function sendJSONandExit( $message )
 }
 
 $ime = isset($_GET[ 'ime' ]) ? $_GET[ 'ime' ] : '';
-$lastmodif = isset( $_GET['lastmodif'] ) ? $_GET['lastmodif'] : 0;
+$timestamp = date(); // vrijeme kada zelimo pristupiti datoteci
 
 //--------------------------------------------------------------------------
 // Pogledamo datoteku s imenima (usernames.txt).
@@ -51,10 +50,10 @@ if( $error !== "" )
     sendJSONandExit( $response );
 }
 
-function cekaj_promjenu($filename, $lastmodif)
+function cekaj_promjenu($filename, $timestamp)
 {
     $currentmodif = filemtime( $filename );
-    while( $currentmodif <= $lastmodif )
+    while( $currentmodif <= $timestamp )
     {
         usleep( 10000 );
         clearstatcache();
@@ -75,11 +74,11 @@ if( $ime != '' )
     if ( preg_match( $pattern, $file_content ) )
     {
         // Sad cekamo promjenu u datoteci
-        cekaj_promjenu( $filename, $lastmodif );
+        cekaj_promjenu( $filename, $timestamp );
         // Dogodila se promjena, zapisujemo svoje ime i cekamo promjenu
         file_put_contents( $filename, $ime );
-        $lastmodif = filemtime( $filename );
-        cekaj_promjenu( $filename, $lastmodif );
+        $timestamp = filemtime( $filename );
+        cekaj_promjenu( $filename, $timestamp );
         // U datoteci je zapisan id
         $id = file_get_contents($filename);
         $response [ 'id' ] = $id;
@@ -115,8 +114,8 @@ if( $ime != '' )
         {
             // Zapisujemo ime u datoteku i cekamo primjenu
             file_put_contents( $filename, $ime );
-            $lastmodif = filemtime( $filename );
-            cekaj_promjenu( $filename, $lastmodif );
+            $timestamp = filemtime( $filename );
+            cekaj_promjenu( $filename, $timestamp );
             // U datoteci je zapisan id
             $id = file_get_contents($filename);
             $response [ 'id' ] = $id;
