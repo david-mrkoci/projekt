@@ -70,7 +70,7 @@ if( $ime != '' )
     // Je li id vec zapisan u datoteci?
     //---------------------------------------------------------------------------
     
-    $pattern = ""; // treba dodati regularni izraz za alphanum_aplhanum_num
+    $pattern = "/^[a-zA-Z0-9]{2,30}_[a-zA-Z0-9]{2,30}_[0-9]{2,30}$/"; // treba dodati regularni izraz za alphanum_aplhanum_num
     if ( preg_match( $pattern, $file_content ) )
     {
         // Sad cekamo promjenu u datoteci
@@ -92,7 +92,7 @@ if( $ime != '' )
         // Je li jedno ime vec zapisano u datoteci?
         //---------------------------------------------------------------------------
 
-        $pattern = ""; // treba dodati regularni izraz za SAMO alphanum
+        $pattern = "/^[a-zA-Z0-9]{2,30}$/"; // treba dodati regularni izraz za SAMO alphanum
         if ( preg_match( $pattern, $file_content ) )
         {
             // Nadopunjujemo file s id-om i saljemo ga natrag

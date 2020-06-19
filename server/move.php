@@ -5,15 +5,12 @@
         $_GET[ 'row' ] - u koji red treba dodati krug
         $_GET[ 'col' ] - u koji stupac treba dodati krug
         $_GET[ 'kraj' ] - true/false je li igra gotova
-        ??????????? $_GET[ 'lastmodif' ]- nisam siguran da je potrebno ?????????
 
     Output: JSON sa svojstvima (natrag se šalje potez igrača 
                                 koji nije pozvao skriptu)
         kraj - true/false je li igra gotova
         row - u koji red treba dodati krug
         col - u koji stupac treba dodati krug
-        ??????????? timestamp ??????
-        ??????????? error - poruka o greskama ???????????
 */
 
 function sendJSONandExit( $message )
@@ -28,8 +25,8 @@ function sendJSONandExit( $message )
 $id = isset( $_GET[ 'id' ] ) ? $_GET[ 'id' ] : '';
 $row = isset( $_GET[ 'row' ] ) ? $_GET[ 'row' ] : '';
 $col = isset( $_GET[ 'col' ] ) ? $_GET[ 'col' ] : '';
-$kraj = isset( $_GET[ 'kraj' ] ) ? $_GET[ 'kraj' ] : '';
-$lastmodif = isset( $_GET[ 'lastmodif' ] ) ? $_GET[ 'lastmodif' ] : 0;
+$kraj = isset( $_GET[ 'kraj' ] ) ? ($_GET[ 'kraj' ] ? "true" : "false") : '';
+$timestamp = date();
 
 //-------------------------------------------------------------------------
 // zapisujemo poslane podatke u datoteku "username1_username2_idvrijeme.log"
@@ -59,7 +56,7 @@ if( $error !== "" )
     sendJSONandExit( $response );
 }
 
-if( $id != '' && $col = '' && $row = '' && $kraj = '' )
+if( $id != '' && $col != '' && $row != '' && $kraj != '' )
 {
     // spremamo potez u datoteku
     file_put_contents( $filename, $my_move);
@@ -68,7 +65,7 @@ if( $id != '' && $col = '' && $row = '' && $kraj = '' )
     $currentmodif = filemtime( $filename );
 
     // vrtimo petlju dok datoteka nije modificirana
-    while ( $currentmodif <= $lastmodif )
+    while ( $currentmodif <= $timestamp )
     {
         usleep( 1000 );
         clearstatcache();
@@ -82,8 +79,11 @@ if( $id != '' && $col = '' && $row = '' && $kraj = '' )
     $new_move = explode( " ", file_get_contents( $filename ) );
     $response[ 'row' ] = $new_move[0];
     $response[ 'col' ] = $new_move[1];
-    $response[ 'kraj' ] = $new_move[2];
-    $response[ 'timestamp' ] = $currentmodif;
+    if ($new_move[2] == "true")
+        $response[ 'kraj' ] = true;
+    if ($new_move[2] == "false")
+        $response[ 'kraj' ] = false;
+    
 
     // Ako je poslan kraj = true brisemo datoteku s potezima jer je igra gotova
     unlink($filename);
