@@ -59,7 +59,7 @@ if( $error !== "" )
 if( $id != '' && $col != '' && $row != '' && $kraj != '' )
 {
     // spremamo potez u datoteku
-    if ($col == -1)
+    if ($col == "-1")
         file_put_contents( $filename, "");
     else
         file_put_contents( $filename, $my_move);
