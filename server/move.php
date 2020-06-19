@@ -25,7 +25,7 @@ function sendJSONandExit( $message )
 $id = isset( $_GET[ 'id' ] ) ? $_GET[ 'id' ] : '';
 $row = isset( $_GET[ 'row' ] ) ? $_GET[ 'row' ] : '';
 $col = isset( $_GET[ 'col' ] ) ? $_GET[ 'col' ] : '';
-$kraj = isset( $_GET[ 'kraj' ] ) ? ($_GET[ 'kraj' ] ? "true" : "false") : '';
+$kraj = isset( $_GET[ 'kraj' ] ) ? $_GET[ 'kraj' ] : '';
 $timestamp = time();
 
 //-------------------------------------------------------------------------
@@ -33,7 +33,7 @@ $timestamp = time();
 // koja čuva zadnji potez u obliku: row(int) col(int) kraj(bool)
 //-------------------------------------------------------------------------
 
-$filename = $id . ".log";
+$filename = "'" . $id . ".txt" . "'"; // mozda bez navodnika
 $my_move = implode(" ", array($row, $col, $kraj));
 
 $error = "";
@@ -56,11 +56,14 @@ if( $error !== "" )
     sendJSONandExit( $response );
 }
 
-if( $id != '' && $col != '' && $row != '' && $kraj != '' )
+if( $id !== '' && $col !== '' && $row !== '' && $kraj !== '' )
 {
     // spremamo potez u datoteku
-    if ($col == "-1")
+    if ($col === "-1") {
+        //$rr = fopen($filename, "w+");
+        //fclose($rr);
         file_put_contents( $filename, "");
+    }
     else
         file_put_contents( $filename, $my_move);
 
@@ -68,13 +71,12 @@ if( $id != '' && $col != '' && $row != '' && $kraj != '' )
     $currentmodif = filemtime( $filename );
 
     // vrtimo petlju dok datoteka nije modificirana
-    while ( $currentmodif <= $timestamp )
+    //while ( $currentmodif <= $timestamp )
     {
         usleep( 1000 );
         clearstatcache();
         $currentmodif = filemtime( $filename );
-    }
-
+    }sendJSONandExit( "array('row' => 2)" );
     // Ako smo ovdje, znamo da je datoteka promjenjena i u nju upisan novi potez
     // Spremimo ga i posaljemo natrag
 
@@ -82,14 +84,14 @@ if( $id != '' && $col != '' && $row != '' && $kraj != '' )
     $new_move = explode( " ", file_get_contents( $filename ) );
     $response[ 'row' ] = $new_move[0];
     $response[ 'col' ] = $new_move[1];
-    if ($new_move[2] == "true")
+    if ($new_move[2] === "true")
         $response[ 'kraj' ] = true;
-    if ($new_move[2] == "false")
+    if ($new_move[2] === "false")
         $response[ 'kraj' ] = false;
     
 
-    // Ako je poslan kraj = true brisemo datoteku s potezima jer je igra gotova
-    unlink($filename);
+    if($response[ 'kraj' ] === true)// Ako je poslan kraj = true brisemo datoteku s potezima jer je igra gotova
+        unlink($filename);
 
     sendJSONandExit( $response );
 }
@@ -98,7 +100,7 @@ else
     $response = [];
     $response[ 'error' ] = "Potez nije dobro poslan.";
 
-    endJSONandExit( $response );
+    sendJSONandExit( $response );
 }
 
 ?>
