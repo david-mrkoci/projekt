@@ -70,7 +70,7 @@ if( $ime != '' )
     // Je li id vec zapisan u datoteci?
     //---------------------------------------------------------------------------
     
-    $pattern = "/^[a-zA-Z0-9]{2,30}_[a-zA-Z0-9]{2,30}_[0-9]{2,30}$/"; // treba dodati regularni izraz za alphanum_aplhanum_num
+    $patternid = "/^[a-zA-Z0-9]{2,30}_[a-zA-Z0-9]{2,30}_[0-9]{2,30}$/"; // treba dodati regularni izraz za alphanum_aplhanum_num
     if ( preg_match( $pattern, $file_content ) )
     {
         // Sad cekamo promjenu u datoteci
@@ -86,15 +86,11 @@ if( $ime != '' )
         $response[ 'mojred' ] = true;
         file_put_contents($filename, "");
     }
-    elseif
+    else if ( preg_match( "/^[a-zA-Z0-9]{2,30}$/", $file_content ) ) //regularni izraz za SAMO alphanum
     {
         //---------------------------------------------------------------------------
         // Je li jedno ime vec zapisano u datoteci?
         //---------------------------------------------------------------------------
-
-        $pattern = "/^[a-zA-Z0-9]{2,30}$/"; // treba dodati regularni izraz za SAMO alphanum
-        if ( preg_match( $pattern, $file_content ) )
-        {
             // Nadopunjujemo file s id-om i saljemo ga natrag
             $idvrijeme = date();
             $id = $file_content . "_" . $ime . "_" . $idvrijeme;
@@ -102,16 +98,13 @@ if( $ime != '' )
             // drugi smo na redu jer smo drugi zapisani
             $response[ 'mojred' ] = false;
             file_put_contents( $filename, $id );
-        }
     }
-    elseif
+    else if ( $file_content === "" )
     {
         //---------------------------------------------------------------------------
         // Je li datoteka prazna?
         //---------------------------------------------------------------------------
 
-        if ( $file_content === "" )
-        {
             // Zapisujemo ime u datoteku i cekamo primjenu
             file_put_contents( $filename, $ime );
             $timestamp = filemtime( $filename );
@@ -122,7 +115,6 @@ if( $ime != '' )
             // prvi smo na red jer smo prvi zapisani
             $response[ 'mojred' ] = true;
             file_put_contents($filename, "");
-        }
     }
 
     sendJSONandExit( $response );

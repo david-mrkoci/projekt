@@ -57,6 +57,7 @@ $( window ).on("load", function()
         }
         $.ajax(
         {
+            type: 'GET',
             url: "../server/username.php",
             data:
             {
@@ -118,6 +119,7 @@ $( window ).on("load", function()
         var uspjeh = false;
         $.ajax(//šaljem svoj potez i čekam potez drugog igrača
         {
+            type: 'GET',
             url: "../server/move.php", //mozda druga skripta
             data:
             {
