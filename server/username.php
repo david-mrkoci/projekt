@@ -30,6 +30,14 @@ $timestamp = time(); // vrijeme kada zelimo pristupiti datoteci
 $filename = "usernames.txt";
 $response = [];
 
+// modificiramo file permission
+if (!file_exists($filename))
+{
+    fopen($filename);
+}
+if (!is_readable($filename) || !is_writable($filename))
+    chmod("./" + $filename, 0777);
+
 $error = "";
 // if( !file_exists( $filename ) )
 //     $error = $error . "Datoteka " . $filename . " ne postoji. ";

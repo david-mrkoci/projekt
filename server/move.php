@@ -33,8 +33,17 @@ $timestamp = time();
 // koja čuva zadnji potez u obliku: row(int) col(int) kraj(bool)
 //-------------------------------------------------------------------------
 
-$filename = "'" . $id . ".txt" . "'"; // mozda bez navodnika
+$filename = $id . ".txt"; // mozda bez navodnika (DA, bez navodnika)
 $my_move = implode(" ", array($row, $col, $kraj));
+
+// modificiramo file permission
+if (!file_exists($filename))
+{
+    fopen($filename);
+}
+if (!is_readable($filename) || !is_writable($filename))
+    chmod("./" + $filename, 0777);
+
 
 $error = "";
 // if( !file_exists( $filename ) )
@@ -60,8 +69,6 @@ if( $id !== '' && $col !== '' && $row !== '' && $kraj !== '' )
 {
     // spremamo potez u datoteku
     if ($col === "-1") {
-        //$rr = fopen($filename, "w+");
-        //fclose($rr);
         file_put_contents( $filename, "");
     }
     else
