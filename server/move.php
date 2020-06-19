@@ -39,10 +39,10 @@ $my_move = implode(" ", array($row, $col, $kraj));
 // modificiramo file permission
 if (!file_exists($filename))
 {
-    fopen($filename);
+    fopen($filename, "w+");
 }
 if (!is_readable($filename) || !is_writable($filename))
-    chmod("./" + $filename, 0777);
+    chmod("/" . $filename, 0777);
 
 
 $error = "";
@@ -78,12 +78,12 @@ if( $id !== '' && $col !== '' && $row !== '' && $kraj !== '' )
     $currentmodif = filemtime( $filename );
 
     // vrtimo petlju dok datoteka nije modificirana
-    //while ( $currentmodif <= $timestamp )
+    while ( $currentmodif <= $timestamp )
     {
         usleep( 1000 );
         clearstatcache();
         $currentmodif = filemtime( $filename );
-    }sendJSONandExit( "array('row' => 2)" );
+    }
     // Ako smo ovdje, znamo da je datoteka promjenjena i u nju upisan novi potez
     // Spremimo ga i posaljemo natrag
 

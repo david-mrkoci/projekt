@@ -38,6 +38,7 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
     var cnv;
     var ctx;
     var ploca;
+    var kraj = false;
     var boje = {1: "blue", 2 : "orange", 3 : "green", 4: "crimson", 
         5: "purple", 6: "brown", 7: "olive", 8: "gold", 
         "?": "black", undefined : "black"};
@@ -93,7 +94,7 @@ $( window ).on("load", function()
            //undefined na svakom mjestu
         }    
 
-        if (!mojred)//ako nije moj red, moram cekat potez suigrača
+        if (!mojred)//ako nije moj red, moram cekat potez suigrača, šaljem dummy potez
         {
             $.ajax(//čekam potez drugog igrača
             {
@@ -109,17 +110,8 @@ $( window ).on("load", function()
                 success: function( data )//u data je potez drugog igrača
                 {
                     console.log(data);
-                    if (!kraj) //prima potez samo ako nije pobijedio, inače prima nešto random
-                    {
-                        ubaci(data.row, data.col, protivnikboja);
-                        if (data.kraj) 
-                        {
-                            console.log("poraz");
-                            alert("IZGUBILI STE!");
-                        }
-                        else
-                            mojred=true; //omoguci potez
-                    }
+                    ubaci(Number(data.row), Number(data.col), protivnikboja);
+                    mojred=true; //omoguci potez
                 },
                 error: function( xhr, status )//mozda treba timeout obraditi
                 {
@@ -167,7 +159,7 @@ $( window ).on("load", function()
                 console.log(data);
                 if (!kraj) //prima potez samo ako nije pobijedio, inače prima nešto random
                 {
-                    ubaci(data.row, data.col, protivnikboja);
+                    ubaci(Number(data.row), Number(data.col), protivnikboja);
                     if (data.kraj) 
                     {
                         console.log("poraz");
