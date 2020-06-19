@@ -26,7 +26,7 @@ $id = isset( $_GET[ 'id' ] ) ? $_GET[ 'id' ] : '';
 $row = isset( $_GET[ 'row' ] ) ? $_GET[ 'row' ] : '';
 $col = isset( $_GET[ 'col' ] ) ? $_GET[ 'col' ] : '';
 $kraj = isset( $_GET[ 'kraj' ] ) ? ($_GET[ 'kraj' ] ? "true" : "false") : '';
-$timestamp = date();
+$timestamp = time();
 
 //-------------------------------------------------------------------------
 // zapisujemo poslane podatke u datoteku "username1_username2_idvrijeme.log"
@@ -37,16 +37,16 @@ $filename = $id . ".log";
 $my_move = implode(" ", array($row, $col, $kraj));
 
 $error = "";
-if( !file_exists( $filename ) )
-    $error = $error . "Datoteka " . $filename . " ne postoji. ";
-else
-{
-    if( !is_readable( $filename ) )
-        $error = $error . "Ne mogu čitati iz datoteke " . $filename . ". ";
+// if( !file_exists( $filename ) )
+//     $error = $error . "Datoteka " . $filename . " ne postoji. ";
+// else
+// {
+//     if( !is_readable( $filename ) )
+//         $error = $error . "Ne mogu čitati iz datoteke " . $filename . ". ";
 
-    if( !is_writable( $filename ) )
-        $error = $error . "Ne mogu pisati u datoteku " . $filename . ". ";
-}
+//     if( !is_writable( $filename ) )
+//         $error = $error . "Ne mogu pisati u datoteku " . $filename . ". ";
+// }
 
 if( $error !== "" )
 {

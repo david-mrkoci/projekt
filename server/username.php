@@ -18,7 +18,7 @@ function sendJSONandExit( $message )
 }
 
 $ime = isset($_GET[ 'ime' ]) ? $_GET[ 'ime' ] : '';
-$timestamp = date(); // vrijeme kada zelimo pristupiti datoteci
+$timestamp = time(); // vrijeme kada zelimo pristupiti datoteci
 
 //--------------------------------------------------------------------------
 // Pogledamo datoteku s imenima (usernames.txt).
@@ -31,24 +31,24 @@ $filename = "usernames.txt";
 $response = [];
 
 $error = "";
-if( !file_exists( $filename ) )
-    $error = $error . "Datoteka " . $filename . " ne postoji. ";
-else
-{
-    if( !is_readable( $filename ) )
-        $error = $error . "Ne mogu čitati iz datoteke " . $filename . ". ";
+// if( !file_exists( $filename ) )
+//     $error = $error . "Datoteka " . $filename . " ne postoji. ";
+// else
+// {
+//     if( !is_readable( $filename ) )
+//         $error = $error . "Ne mogu čitati iz datoteke " . $filename . ". ";
 
-    if( !is_writable( $filename ) )
-        $error = $error . "Ne mogu pisati u datoteku " . $filename . ". ";
-} 
+//     if( !is_writable( $filename ) )
+//         $error = $error . "Ne mogu pisati u datoteku " . $filename . ". ";
+// } 
 
-if( $error !== "" )
-{
-    $response = [];
-    $response[ 'error' ] = $error;
+// if( $error !== "" )
+// {
+//     $response = [];
+//     $response[ 'error' ] = $error;
 
-    sendJSONandExit( $response );
-}
+//     sendJSONandExit( $response );
+// }
 
 function cekaj_promjenu($filename, $timestamp)
 {
@@ -70,7 +70,7 @@ if( $ime != '' )
     // Je li id vec zapisan u datoteci?
     //---------------------------------------------------------------------------
     
-    $patternid = "/^[a-zA-Z0-9]{2,30}_[a-zA-Z0-9]{2,30}_[0-9]{2,30}$/"; // treba dodati regularni izraz za alphanum_aplhanum_num
+    $pattern = "/^[a-zA-Z0-9]{2,30}_[a-zA-Z0-9]{2,30}_[0-9]{2,30}$/"; // treba dodati regularni izraz za alphanum_aplhanum_num
     if ( preg_match( $pattern, $file_content ) )
     {
         // Sad cekamo promjenu u datoteci
@@ -92,7 +92,7 @@ if( $ime != '' )
         // Je li jedno ime vec zapisano u datoteci?
         //---------------------------------------------------------------------------
             // Nadopunjujemo file s id-om i saljemo ga natrag
-            $idvrijeme = date();
+            $idvrijeme = time();
             $id = $file_content . "_" . $ime . "_" . $idvrijeme;
             $response [ 'id' ] = $id;
             // drugi smo na redu jer smo drugi zapisani

@@ -69,12 +69,10 @@ $( window ).on("load", function()
                 uspjeh = data.uspjeh;
                 id = data.id;
                 mojred = data.mojred;
-                jaboja = data.boja;
-                protivnikboja = (jaboja === "red" ? "yellow" : "red");
-                if (true)
-                {
-                    igra();
-                }
+                //jaboja = data.boja;
+                //protivnikboja = (jaboja === "red" ? "yellow" : "red");
+                jaboja = "red"; protivnikboja = "yellow";
+                igra();
             },
             error: function( xhr, status )
             {
@@ -93,7 +91,43 @@ $( window ).on("load", function()
            ploca[i] = new Array(nCols);
            //ploca je dimenzija nRows x nCols 
            //undefined na svakom mjestu
-        }                   
+        }    
+
+        if (!mojred)//ako nije moj red, moram cekat potez suigrača
+        {
+            $.ajax(//čekam potez drugog igrača
+            {
+                type: 'GET',
+                url: "../server/move.php", //mozda druga skripta
+                data:
+                {
+                    id: id,
+                    row: -1,
+                    col: -1,
+                    kraj: false
+                },
+                success: function( data )//u data je potez drugog igrača
+                {
+                    console.log(data);
+                    if (!kraj) //prima potez samo ako nije pobijedio, inače prima nešto random
+                    {
+                        ubaci(data.row, data.col, protivnikboja);
+                        if (data.kraj) 
+                        {
+                            console.log("poraz");
+                            alert("IZGUBILI STE!");
+                        }
+                        else
+                            mojred=true; //omoguci potez
+                    }
+                },
+                error: function( xhr, status )//mozda treba timeout obraditi
+                {
+                    if( status !== null )
+                        console.log( "Greška prilikom Ajax poziva: " + status );
+                }
+            } );
+        }               
     }
 
     function canvasclick(e) //lijevi klik
