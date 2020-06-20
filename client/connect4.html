@@ -19,13 +19,16 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
     <h1>Connect four</h1>
 
     <br>
-    Korisničko ime: <input type="text" id="ime"><br>
-    <!-- Broj stupaca: <input type="text" id="nCols"><br>
-    Broj mina: <input type="text" id="nMines"><br> -->
-    <input type="button" id="start" value = "Start"><br>
+    <div id="divime">
+        Korisničko ime: <input type="text" id="ime"><br>
+        <input type="button" id="start" value = "Start"><br>
+    </div>
 
-    <!-- Preostali broj mina: <div id="ostaloMina"></div>
-    <h2 id="poruka"></h2> -->
+    <div id="divinfo">
+        <h3 id="poruka"></h3>
+        <label id="labelvrijeme" hidden>Preostalo vrijeme za potez: </label>
+        <label id="prostalovrijeme"></label>
+    </div>
 
     <script>
     var id = false; 
@@ -39,9 +42,7 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
     var ctx;
     var ploca;
     var kraj = false;
-    var boje = {1: "blue", 2 : "orange", 3 : "green", 4: "crimson", 
-        5: "purple", 6: "brown", 7: "olive", 8: "gold", 
-        "?": "black", undefined : "black"};
+    var ime = "nema";
 
 $( window ).on("load", function()
 {
@@ -49,13 +50,15 @@ $( window ).on("load", function()
     $( "#start" ).on( "click", function(e)
     {
         var uspjeh = false;
-        var ime = $("#ime").val();
-        console.log(ime);
-        if (! (/^[a-zA-Z0-9]{2,30}$/.test(ime) ))
+        if (! (/^[a-zA-Z0-9]{2,30}$/.test($("#ime").val()) ))
         {
             alert("Korisničko ime se mora sastojati od slova i znamenki");
             return;
         }
+        ime = $("#ime").val();
+        console.log(ime);
+        $("#divime").hide();
+        $("#poruka").html("Tražim drugog igrača...");
         $.ajax(
         {
             type: 'GET',
@@ -70,10 +73,22 @@ $( window ).on("load", function()
                 uspjeh = data.uspjeh;
                 id = data.id;
                 mojred = data.mojred;
+
+                if (mojred)
+                {
+                    $("#poruka").html("Vi ste na potezu.");
+                }
+                else
+                {
+                    $("#poruka").html("Protivnik je na potezu");
+                }
+
                 //jaboja = data.boja;
                 //protivnikboja = (jaboja === "red" ? "yellow" : "red");
                 jaboja = "red"; protivnikboja = "yellow";
                 igra();
+
+                $("#labelvrijeme").show();
             },
             error: function( xhr, status )
             {
@@ -96,6 +111,7 @@ $( window ).on("load", function()
 
         if (!mojred)//ako nije moj red, moram cekat potez suigrača, šaljem dummy potez
         {
+            $("#poruka").html("Protivnik je na potezu");//dok ne dobijem odgovor
             $.ajax(//čekam potez drugog igrača
             {
                 type: 'GET',
@@ -112,6 +128,7 @@ $( window ).on("load", function()
                     console.log(data);
                     ubaci(Number(data.row), Number(data.col), protivnikboja);
                     mojred=true; //omoguci potez
+                    $("#poruka").html("Vi ste na potezu.");
                 },
                 error: function( xhr, status )//mozda treba timeout obraditi
                 {
@@ -140,6 +157,11 @@ $( window ).on("load", function()
         {
             console.log("pobjeda");
             alert("POBJEDILI STE!");
+            $("#poruka").html("POBJEDILI STE!");
+        }
+        else
+        {
+            $("#poruka").html("Protivnik je na potezu");
         }
         mojred = false;
         var uspjeh = false;
@@ -164,9 +186,13 @@ $( window ).on("load", function()
                     {
                         console.log("poraz");
                         alert("IZGUBILI STE!");
+                        $("#poruka").html("IZGUBILI STE!");
                     }
-                    else
+                    else 
+                    {
                         mojred=true; //omoguci potez
+                        $("#poruka").html("Vi ste na potezu.");
+                    }
                 }
             },
             error: function( xhr, status )//mozda treba timeout obraditi
