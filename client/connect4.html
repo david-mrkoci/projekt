@@ -8,6 +8,12 @@ Gleda je li pobijedio i onda šalje id, kraj(true/false), row, col serveru i če
 na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
  -->
 
+ <!--
+     Napisana funkcija show_timer()
+     Svaki put kad se mijenja poruka u "Vi ste na potezu"
+     pokazuje se timer i pocinje odbrojavati od 120
+ -->
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -27,7 +33,7 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
     <div id="divinfo">
         <h3 id="poruka"></h3>
         <label id="labelvrijeme" hidden>Preostalo vrijeme za potez: </label>
-        <label id="prostalovrijeme"></label>
+        <label id="timer"></label>
     </div>
 
     <script>
@@ -77,6 +83,7 @@ $( window ).on("load", function()
                 if (mojred)
                 {
                     $("#poruka").html("Vi ste na potezu.");
+                    show_timer();
                 }
                 else
                 {
@@ -129,6 +136,7 @@ $( window ).on("load", function()
                     ubaci(Number(data.row), Number(data.col), protivnikboja);
                     mojred=true; //omoguci potez
                     $("#poruka").html("Vi ste na potezu.");
+                    show_timer();
                 },
                 error: function( xhr, status )//mozda treba timeout obraditi
                 {
@@ -192,6 +200,7 @@ $( window ).on("load", function()
                     {
                         mojred=true; //omoguci potez
                         $("#poruka").html("Vi ste na potezu.");
+                        show_timer();
                     }
                 }
             },
@@ -315,6 +324,32 @@ $( window ).on("load", function()
         }
         ctx.stroke();
     }
+
+    function show_timer()
+    {
+        // vrijeme do kojeg odbrojavamo (imamo 2 minute za potez)
+        var countDownTime = new Date().getTime() + 120;
+
+        // updejtamo timer svaku sekundu
+        var x = setInterval(function()
+        {
+            // dohvatimo trenutno vrijeme
+            var now = new Date().getTime();
+
+            // izracunamo razliku
+            var time_left = countDownTime - now;
+
+            // prikazemo vrijeme u elementu s id-om "timer"
+            document.getElementById("timer").innerHTML = time_left;
+
+            // ako je odbrojavanje gotovo ne prikazujemo nista
+            if (time_left < 0) {
+                clearInterval(x);
+                document.getElementById("timer").innerHTML = "";
+            }
+        }, 1000);
+    }
+
 } );
 
     </script>
