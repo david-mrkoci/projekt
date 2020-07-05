@@ -11,6 +11,9 @@
         kraj - true/false je li igra gotova
         row - u koji red treba dodati krug
         col - u koji stupac treba dodati krug
+        istekloVrijeme - true ako se u datoteci u kojoj se pamte potezi ne
+                         dogodi nikakva promjena, što znači da protivnik nije
+                         napravio nikakav potez u svom vremenu
 */
 
 function sendJSONandExit( $message )
@@ -76,10 +79,26 @@ if( $id !== '' && $col !== '' && $row !== '' && $kraj !== '' )
 
     // kada je zadnji put promjenjena datoteka s potezima?
     $currentmodif = filemtime( $filename );
+    
+    $opponentTimer = time() + 125*1000; // vrijeme do kojeg server
+                                        //  mora primiti poruku
 
     // vrtimo petlju dok datoteka nije modificirana
     while ( $currentmodif <= $timestamp )
     {
+        $currentTime = time();
+        $timeLeft = $opponentTimer - $currentTime;
+        if ($timeLeft <= 0)
+        {
+            // protivniku je isteklo vrijeme
+            $response = array();
+            $response[ "istekloVrijeme" ] = true;
+            
+            // igra je gotova, brisemo datoteku
+            unlink($filename)
+
+            sendJSONandExit( $response );
+        }
         usleep( 1000 );
         clearstatcache();
         $currentmodif = filemtime( $filename );
@@ -91,13 +110,15 @@ if( $id !== '' && $col !== '' && $row !== '' && $kraj !== '' )
     $new_move = explode( " ", file_get_contents( $filename ) );
     $response[ 'row' ] = $new_move[0];
     $response[ 'col' ] = $new_move[1];
+    $response[ "istekloVrijeme" ] = false;
     if ($new_move[2] === "true")
         $response[ 'kraj' ] = true;
     if ($new_move[2] === "false")
         $response[ 'kraj' ] = false;
     
 
-    if($response[ 'kraj' ] === true)// Ako je poslan kraj = true brisemo datoteku s potezima jer je igra gotova
+    if($response[ 'kraj' ] === true)// Ako je poslan kraj = true brisemo datoteku 
+                                    // s potezima jer je igra gotova
         unlink($filename);
 
     sendJSONandExit( $response );
