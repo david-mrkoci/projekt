@@ -204,18 +204,27 @@ $( window ).on("load", function()
                 stop_timer();
                 if (!kraj) //prima potez samo ako nije pobijedio, inače prima nešto random
                 {
-                    ubaci(Number(data.row), Number(data.col), protivnikboja);
-                    if (data.kraj) 
+                    if (data.hasOwnProperty("istekloVrijeme") && data.istekloVrijeme)
                     {
-                        console.log("poraz");
-                        alert("IZGUBILI STE!");
-                        $("#poruka").html("IZGUBILI STE!");
+                        console.log("pobjeda - protivnik napustio igru");
+                        alert("POBJEDILI STE! Protivnik je napustio igru");
+                        $("#poruka").html("POBJEDILI STE! Protivnik je napustio igru");
                     }
                     else 
                     {
-                        mojred=true; //omoguci potez
-                        $("#poruka").html("Vi ste na potezu.");
-                        show_timer();
+                        ubaci(Number(data.row), Number(data.col), protivnikboja);
+                        if (data.kraj) 
+                        {
+                                console.log("poraz");
+                                alert("IZGUBILI STE!");
+                                $("#poruka").html("IZGUBILI STE!");
+                        }
+                        else 
+                        {
+                            mojred=true; //omoguci potez
+                            $("#poruka").html("Vi ste na potezu.");
+                            show_timer();
+                        }
                     }
                 }
             },
