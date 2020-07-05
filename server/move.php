@@ -80,7 +80,7 @@ if( $id !== '' && $col !== '' && $row !== '' && $kraj !== '' )
     // kada je zadnji put promjenjena datoteka s potezima?
     $currentmodif = filemtime( $filename );
     
-    $opponentTimer = time() + 125*1000; // vrijeme do kojeg server
+    $opponentTimer = time() + 122;// vrijeme do kojeg server
                                         //  mora primiti poruku
 
     // vrtimo petlju dok datoteka nije modificirana
@@ -95,7 +95,7 @@ if( $id !== '' && $col !== '' && $row !== '' && $kraj !== '' )
             $response[ "istekloVrijeme" ] = true;
             
             // igra je gotova, brisemo datoteku
-            unlink($filename)
+            unlink($filename);
 
             sendJSONandExit( $response );
         }

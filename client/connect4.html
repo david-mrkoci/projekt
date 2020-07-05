@@ -146,10 +146,19 @@ $( window ).on("load", function()
                 {
                     stop_timer();
                     console.log(data);
-                    ubaci(Number(data.row), Number(data.col), protivnikboja);
-                    mojred=true; //omoguci potez
-                    $("#poruka").html("Vi ste na potezu.");
-                    show_timer();
+                    if (data.hasOwnProperty("istekloVrijeme") && data.istekloVrijeme)
+                    {
+                        console.log("pobjeda - protivnik napustio igru");
+                        alert("POBJEDILI STE! Protivnik je napustio igru");
+                        $("#poruka").html("POBJEDILI STE! Protivnik je napustio igru");
+                    }
+                    else 
+                    {
+                        ubaci(Number(data.row), Number(data.col), protivnikboja);
+                        mojred=true; //omoguci potez
+                        $("#poruka").html("Vi ste na potezu.");
+                        show_timer();
+                    }
                 },
                 error: function( xhr, status )//mozda treba timeout obraditi
                 {
@@ -307,7 +316,7 @@ $( window ).on("load", function()
         ctx.arc(
             col*blockwidth + blockwidth/2,
             row*blockheight + blockheight/2, 
-            blockwidth/2,
+            blockwidth/2 - 5,
             0,
             2*Math.PI
             );
@@ -373,8 +382,8 @@ $( window ).on("load", function()
                 $("#timer").html("0");
                 if (mojred)
                     $("#poruka").html("IZGUBILI STE! Vrijeme za vaš potez je isteklo.");
-                else
-                    $("#poruka").html("POBIJEDILI STE! Vrijeme za potez protivnika je isteklo.");
+                //else
+                //    $("#poruka").html("POBIJEDILI STE! Vrijeme za potez protivnika je isteklo.");
                 mojred = false;//onemogući potez
             }
         }, 1000);
