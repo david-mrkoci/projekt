@@ -15,10 +15,8 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
  -->
 
  <!-- 
-     problemi:
-     -na serveru se nagomilavaju datoteke ako neki igrač izađe iz igre, to se može srediti timerom na serveru
-     -server treba na neki način slati igraču ako je drugi igrač izašao iz igre ili nije napravio potez u roku
-  -->
+    server izbrise datoteku ako je kraj a ne treba ako je rematch     
+-->
 
 <!DOCTYPE html>
 <html>
@@ -34,7 +32,7 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
     <div id="divime">
         Korisničko ime: <input type="text" id="ime"><br>
     </div>
-        <input type="button" id="start" value = "Start"><br>
+    <input type="button" id="start" value = "Start"><br>
 
 
     <h3 id="poruka"></h3>
@@ -61,9 +59,10 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
 $( window ).on("load", function()
 {
     $("#divinfo").hide();
-    //klikom na gumb start serveru se šalje ime 
+    //klikom na gumb start serveru se šalje ime
     $( "#start" ).on( "click", function(e)
     {
+        $( "#start" ).hide();
         if (timer !== undefined) stop_timer();
         $("#cnv").remove();
         $("#divinfo").hide();
@@ -119,7 +118,7 @@ $( window ).on("load", function()
         
     } );
 
-    function igra()
+    function igra() //
     {
         nacrtajPlocu();
         ploca = [];
@@ -149,8 +148,8 @@ $( window ).on("load", function()
                     if (data.hasOwnProperty("istekloVrijeme") && data.istekloVrijeme)
                     {
                         console.log("pobjeda - protivnik napustio igru");
-                        alert("POBJEDILI STE! Protivnik je napustio igru");
                         $("#poruka").html("POBJEDILI STE! Protivnik je napustio igru");
+                        $( "#start" ).show();
                     }
                     else 
                     {
@@ -187,8 +186,8 @@ $( window ).on("load", function()
         if (kraj)
         {
             console.log("pobjeda");
-            alert("POBJEDILI STE!");
             $("#poruka").html("POBJEDILI STE!");
+            $( "#start" ).show();
         }
         else
         {
@@ -210,14 +209,15 @@ $( window ).on("load", function()
             success: function( data )//u data je potez drugog igrača
             {
                 console.log(data);
-                stop_timer();
                 if (!kraj) //prima potez samo ako nije pobijedio, inače prima nešto random
                 {
+                    stop_timer();
                     if (data.hasOwnProperty("istekloVrijeme") && data.istekloVrijeme)
                     {
                         console.log("pobjeda - protivnik napustio igru");
-                        alert("POBJEDILI STE! Protivnik je napustio igru");
+                        //alert("POBJEDILI STE! Protivnik je napustio igru");
                         $("#poruka").html("POBJEDILI STE! Protivnik je napustio igru");
+                        $( "#start" ).show();
                     }
                     else 
                     {
@@ -225,8 +225,9 @@ $( window ).on("load", function()
                         if (data.kraj) 
                         {
                                 console.log("poraz");
-                                alert("IZGUBILI STE!");
+                                //alert("IZGUBILI STE!");
                                 $("#poruka").html("IZGUBILI STE!");
+                                $( "#start" ).show();
                         }
                         else 
                         {
@@ -237,7 +238,7 @@ $( window ).on("load", function()
                     }
                 }
             },
-            error: function( xhr, status )//mozda treba timeout obraditi
+            error: function( xhr, status )
             {
                 if( status !== null )
                     console.log( "Greška prilikom Ajax poziva: " + status );
@@ -290,7 +291,7 @@ $( window ).on("load", function()
                 ) 
                 ++j;
             //console.log("i+j-1 = ", i+j-1);
-            //i,j >1 0
+            //i,j >1
             i = (i - 1) % 4;//-1 jer se mjesto (row, col) broji
             j = (j - 1) % 4;//-1 jer se mjesto (row, col) broji
 
@@ -302,7 +303,6 @@ $( window ).on("load", function()
         return bodovi != 0;
     }
     //ubacuje igraca na plocu na polje (row, col)
-    //igrac mora biti boja!!
     function ubaci(row, col, boja)//lijevi klik
     {
         ploca[row][col] = boja;
@@ -361,7 +361,7 @@ $( window ).on("load", function()
     function show_timer()
     {
         // vrijeme do kojeg odbrojavamo (imamo 2 minute za potez)
-        var countDownTime = new Date().getTime() + 120000;
+        var countDownTime = new Date().getTime() + 120 * 1000;
 
         // updejtamo timer svaku sekundu
         timer = setInterval(function()
@@ -382,9 +382,8 @@ $( window ).on("load", function()
                 $("#timer").html("0");
                 if (mojred)
                     $("#poruka").html("IZGUBILI STE! Vrijeme za vaš potez je isteklo.");
-                //else
-                //    $("#poruka").html("POBIJEDILI STE! Vrijeme za potez protivnika je isteklo.");
                 mojred = false;//onemogući potez
+                $( "#start" ).show();
             }
         }, 1000);
     }
@@ -392,8 +391,7 @@ $( window ).on("load", function()
     {
         clearInterval(timer);
     }
-
-} );
+});
 
     </script>
 </body>
