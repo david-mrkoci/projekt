@@ -78,21 +78,46 @@ if( $ime != '' )
     // Je li id vec zapisan u datoteci?
     //---------------------------------------------------------------------------
     
-    $pattern = "/^[a-zA-Z0-9]{2,30}_[a-zA-Z0-9]{2,30}_[0-9]{2,30}$/"; // treba dodati regularni izraz za alphanum_aplhanum_num
+    $pattern = "/^[a-zA-Z0-9]{2,30}_[a-zA-Z0-9]{2,30}_[0-9]{2,30}$/"; // regularni izraz za alphanum_aplhanum_num
     if ( preg_match( $pattern, $file_content ) )
     {
         // Sad cekamo promjenu u datoteci
         cekaj_promjenu( $filename, $timestamp );
-        // Dogodila se promjena, zapisujemo svoje ime i cekamo promjenu
-        file_put_contents( $filename, $ime );
-        $timestamp = filemtime( $filename );
-        cekaj_promjenu( $filename, $timestamp );
-        // U datoteci je zapisan id
-        $id = file_get_contents($filename);
-        $response [ 'id' ] = $id;
-        // prvi smo na red jer smo prvi zapisani
-        $response[ 'mojred' ] = true;
-        file_put_contents($filename, "");
+
+        // Dogodila se promjena, provjeravamo što je u datoteci
+        $file_content = file_get_contents( $filename );
+
+        if ( preg_match( "/^[a-zA-Z0-9]{2,30}$/", $file_content ) )
+        {
+        //---------------------------------------------------------------------------
+        // Je li jedno ime vec zapisano u datoteci?
+        //---------------------------------------------------------------------------
+
+            // Nadopunjujemo file s id-om i saljemo ga natrag
+            $idvrijeme = time();
+            $id = $file_content . "_" . $ime . "_" . $idvrijeme;
+            $response [ 'id' ] = $id;
+            // drugi smo na redu jer smo drugi zapisani
+            $response[ 'mojred' ] = false;
+            file_put_contents( $filename, $id );
+        }
+        else if ( $file_content === "" )
+        {   
+        //---------------------------------------------------------------------------
+        // Je li datoteka prazna?
+        //---------------------------------------------------------------------------
+
+            // Zapisujemo ime u datoteku i cekamo promjenu
+            file_put_contents( $filename, $ime );
+            $timestamp = filemtime( $filename );
+            cekaj_promjenu( $filename, $timestamp );
+            // U datoteci je zapisan id
+            $id = file_get_contents($filename);
+            $response [ 'id' ] = $id;
+            // prvi smo na red jer smo prvi zapisani
+            $response[ 'mojred' ] = true;
+            file_put_contents($filename, "");
+        }
     }
     else if ( preg_match( "/^[a-zA-Z0-9]{2,30}$/", $file_content ) ) //regularni izraz za SAMO alphanum
     {
@@ -113,7 +138,7 @@ if( $ime != '' )
         // Je li datoteka prazna?
         //---------------------------------------------------------------------------
 
-            // Zapisujemo ime u datoteku i cekamo primjenu
+            // Zapisujemo ime u datoteku i cekamo promjenu
             file_put_contents( $filename, $ime );
             $timestamp = filemtime( $filename );
             cekaj_promjenu( $filename, $timestamp );
