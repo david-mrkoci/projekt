@@ -60,7 +60,7 @@ function cleaup()
 
     // brisemo sve koji nisu u igri i neaktivni su vec 10 min
     $current = time();
-    $max_time = 1000*60*10; // 10 min
+    $max_time = 1000*60; // 1 min
 	$st->execute( array( 'current' => $current, 'max_time' => $max_time ) );
 }
 
