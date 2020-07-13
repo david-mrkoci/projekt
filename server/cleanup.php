@@ -34,8 +34,8 @@ function update_timestamp($username)
 	if ($row = $st->fetch() )
 	{
         $timestamp = time();
-		$st = $db->prepare( 'UPDATE connect4 SET timestamp= :timestamp WHERE username= :username' );
-		$st->execute( array( 'username' => $username, 'timestamp' => $timestamp ) );
+		$st = $db->prepare( 'UPDATE connect4 SET tstamp=:tstamp WHERE username=:username' );
+		$st->execute( array( 'username' => $username, 'tstamp' => $timestamp ) );
 	}
 	else
 	{

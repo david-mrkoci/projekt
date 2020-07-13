@@ -53,12 +53,12 @@ function add_user($username, $timestamp)
 	try
 	{
 		// pripremi insert naredbu
-		$st = $db->prepare( 'INSERT INTO connect4 (username, timestamp) 
-                             VALUES (:username, :timestamp)' );
+		$st = $db->prepare( 'INSERT INTO connect4 (username, tstamp) 
+                             VALUES (:username, :tstamp)' );
 
         // izvrši tu insert naredbu
         $st->execute( array( 'username' => $username, 
-                             'timestamp' => $timestamp ) );
+                             'tstamp' => $timestamp ) );
 	}
 	catch( PDOException $e ) { return; }
 }

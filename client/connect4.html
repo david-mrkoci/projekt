@@ -3,6 +3,10 @@
  Kada klikne na canvas, izračuna se koji je to stupac i na koju visinu se mora ubaciti.
 Gleda je li pobijedio i onda šalje id, kraj(true/false), row, col serveru i čeka
 na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
+
+
+
+treba: na kraju igre obrisati opponent i to
  -->
 
 <!DOCTYPE html>
@@ -22,6 +26,7 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
         Korisničko ime: <input type="text" id="ime"><br>
     </div>
     <input type="button" id="start" value = "Start"><br>
+    <input type="button" id="gumbzapopis" value = "Nova igra" hidden><br>
 
 
     <h3 id="poruka"></h3>
@@ -55,6 +60,7 @@ $( window ).on("load", function()
 {
     $("#divinfo").hide();
     //klikom na gumb start serveru se šalje ime
+    $("#gumbzapopis").on("click", pokazi_popis);
     $( "#start" ).on( "click", function(e)
     {
         if (timer !== undefined) stop_timer();
@@ -90,6 +96,7 @@ $( window ).on("load", function()
                     //console.log(ime);
                     $("#divime").hide();
                     //biranje_igraca();//interval = setInterval(biranje_igraca, 1000);
+                    $("#igraci").show();
                     biranje_igraca();
                 }
                 else
@@ -117,14 +124,14 @@ $( window ).on("load", function()
             url: "../server/players.php",
             data:
             {
-                username: ime
+                ime: ime
             },
             success: function( data )
             {
                 if (data.opponent !== "")//netko me je odabrao, mozda drugacija detekcija
                 {
                     clearTimeout(ff);
-                    $("labelprotivnik").html(data.opponent);
+                    $("#labelprotivnik").html(data.opponent);
                     id = data.id;
                     mojred = data.mojred;
                     jaboja = "red"; protivnikboja = "yellow";
@@ -144,14 +151,7 @@ $( window ).on("load", function()
                                     .on("click", klikNaIgraca)
                             );
                     });
-                    //treba se opet pozvati ova funkcija nakon nekog vremena - 1 sec
-                    //console.log("prije timeout");
-                    //biranje_igraca();
                     ff = setTimeout(biranje_igraca, 5000);//vratiti 1000 ili manje
-                    //nije dobro, stalno se poziva, treba sleep
-                    //console.log("nakon timeout");
-
-                    //zoviNakonSekunde();
                 }
             },
             error: function( xhr, status )//mozda treba timeout obraditi
@@ -166,6 +166,8 @@ $( window ).on("load", function()
     {
         clearTimeout(ff);
         opponent = $(this).html();
+        //console.log(opponent);
+        id = ime + "_" + opponent;
         $.ajax(
         {
             type: 'GET',
@@ -174,13 +176,14 @@ $( window ).on("load", function()
             {
                 player1: ime,
                 player2: opponent,
-                id: ime + "_" + opponent
+                ID: id
             },
             success: function( data )
             {
                 if (data.ok) 
                 {
-                    $("labelprotivnik").html(opponent)
+                    $("#igraci").hide();
+                    $("#labelprotivnik").html(opponent);
                     mojred = true;//data.mojred
                     jaboja = "red"; protivnikboja = "yellow";
                     igra();
@@ -200,6 +203,7 @@ $( window ).on("load", function()
 
     function igra() //
     {
+        $("#gumbzapopis").hide();
         nacrtajPlocu();
         ploca = [];
         for(var i=0; i<nRows; ++i) {
@@ -238,7 +242,7 @@ $( window ).on("load", function()
                     {
                         console.log("pobjeda - protivnik napustio igru");
                         $("#poruka").html("POBJEDILI STE! Protivnik je napustio igru");
-                        $( "#start" ).show();
+                        $( "#gumbzapopis" ).show();
                     }
                     else 
                     {
@@ -276,7 +280,7 @@ $( window ).on("load", function()
         {
             console.log("pobjeda");
             $("#poruka").html("POBJEDILI STE!");
-            $( "#start" ).show();
+            $( "#gumbzapopis" ).show();
         }
         else
         {
@@ -306,7 +310,7 @@ $( window ).on("load", function()
                         console.log("pobjeda - protivnik napustio igru");
                         //alert("POBJEDILI STE! Protivnik je napustio igru");
                         $("#poruka").html("POBJEDILI STE! Protivnik je napustio igru");
-                        $( "#start" ).show();
+                        $( "#gumbzapopis" ).show();
                         pozovi_cleanup();
 
                     }
@@ -318,7 +322,7 @@ $( window ).on("load", function()
                             console.log("poraz");
                             //alert("IZGUBILI STE!");
                             $("#poruka").html("IZGUBILI STE!");
-                            $( "#start" ).show();
+                            $( "#gumbzapopis" ).show();
                             pozovi_cleanup();
                         }
                         else 
@@ -481,7 +485,7 @@ $( window ).on("load", function()
                     pozovi_cleanup();
                 }
                 mojred = false;//onemogući potez
-                $( "#start" ).show();
+                $( "#gumbzapopis" ).show();
             }
         }, 250);//800
     }
@@ -510,6 +514,15 @@ $( window ).on("load", function()
             }
         } );
     }
+
+    function pokazi_popis()
+    {
+        $("#cnv").remove();
+        $("#divinfo").hide();
+        $("#igraci").show();
+        biranje_igraca();
+    }
+
 });
 
     </script>

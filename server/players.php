@@ -23,8 +23,8 @@ function sendJSONandExit( $message )
 
 function update_timestamp($username)
 {
-    // // spajanje na bazu podataka
-    // $db = DB::getConnection();
+    // spajanje na bazu podataka
+    $db = DB::getConnection();
 
     // // dohvacamo sve retke s nasim username-om
 	// try
@@ -43,9 +43,9 @@ function update_timestamp($username)
 	// }
 	// else
 	{
-        $timestamp = time();
-		$st = $db->prepare( 'UPDATE connect4 SET timestamp=:timestamp WHERE username=:username' );
-		$st->execute( array( 'username' => $username, 'timestamp' => $timestamp ) );
+        $tstamp = time();
+		$st = $db->prepare( 'UPDATE connect4 SET tstamp=:tstamp WHERE username=:username' );
+		$st->execute( array( 'tstamp' => $tstamp, 'username' => $username ) );
 	}
 }
 
@@ -56,11 +56,11 @@ function cleanup()
     $db = DB::getConnection();
 
     // priprema naredbe za brisanje
-    $st = $db->prepare( 'DELETE FROM connect4 WHERE :current - timestamp > :max_time AND in_game=0');
+    $st = $db->prepare( 'DELETE FROM connect4 WHERE :current - tstamp > :max_time AND in_game=0');
 
     // brisemo sve koji nisu u igri i neaktivni su vec 1 min
     $current = time();
-    $max_time = 10; // 10 sec
+    $max_time = 60; // 10 sec
 	$st->execute( array( 'current' => $current, 'max_time' => $max_time ) );
 }
 
@@ -122,7 +122,7 @@ function list_players($username)
 
 // treba uskalditi GET-ove
 $username = isset($_GET[ 'ime' ]) ? $_GET[ 'ime' ] : '';
-$timestamp = time(); // trenutno vrijeme
+//$tstamp = time(); // trenutno vrijeme
 
 update_timestamp($username);
 cleanup();
