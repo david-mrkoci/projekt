@@ -4,7 +4,7 @@
         $_GET[ 'ime' ] - username igraca
 
 	Output: JSON sa svojstvima
-        ok - true ako je ime jedinstveno
+        nista
 */
 
 require_once 'db_class.php';
@@ -18,7 +18,7 @@ function sendJSONandExit( $message )
     exit( 0 );
 }
 
-function is_unique($username)
+function update_timestamp($username)
 {
     // spajanje na bazu podataka
     $db = DB::getConnection();
@@ -26,8 +26,7 @@ function is_unique($username)
     // dohvacamo sve retke s nasim username-om
 	try
 	{
-		$st = $db->prepare( 'SELECT username FROM connect4 
-                             WHERE username=:username' );
+		$st = $db->prepare( 'SELECT username FROM connect4 WHERE username=:username' );
 		$st->execute( array( 'username' => $username ) );
 	}
 	catch( PDOException $e ) { return; }
@@ -36,33 +35,27 @@ function is_unique($username)
 
 	if( $row === false )
 	{
-		// nas username nije u bazi, znaci da smo jedinstveni
+		// nema nas u bazi
 		return true;
 	}
 	else
 	{
-		// postoji igrac s nasim imenom, nismo jedinstveni
-		return false;
+        $timestamp = time();
+		$st = $db->prepare( 'UPDATE connect4 SET timestamp= :timestamp WHERE username= :username' );
+		$st->execute( array( 'username' => $username, 'timestamp' => $timestamp ) );
 	}
 }
 
-function add_user($username, $timestamp)
+// brise protivnika, game ID i postavlja in_game na 0
+function cleaup($username)
 {
     // spajanje na bazu podataka
     $db = DB::getConnection();
+    $timestamp = time();
 
-    // dodajemo usera
-	try
-	{
-		// pripremi insert naredbu
-		$st = $db->prepare( 'INSERT INTO connect4 (username, timestamp) 
-                             VALUES (:username, :timestamp)' );
-
-        // izvrši tu insert naredbu
-        $st->execute( array( 'username' => $username, 
-                             'timestamp' => $timestamp ) );
-	}
-	catch( PDOException $e ) { return; }
+    // priprema naredbe za update
+    $st = $db->prepare( 'UPDATE connect4 SET in_game= 0, opponent= NULL, game_ID= NULL WHERE username= :username');
+    $st->execute( array( 'username' => $username ) );
 }
 
 #############################################################################
@@ -70,20 +63,10 @@ function add_user($username, $timestamp)
 
 // treba uskalditi GET-ove
 $username = isset($_GET[ 'ime' ]) ? $_GET[ 'ime' ] : '';
-$timestamp = time(); // vrijeme prijave
 
-// postavljamo ok varijablu na false
-$ok = false;
+update_timestamp($username);
+cleaup($username);
 
-// imamo li jedinstveno korisnicko ime?
-if ( is_unique($username) )
-{
-    // da, dodajemo novi redak
-    $ok = true;
-    add_user($username, $timestamp);
-}
-
-$response [ 'ok' ] = $ok;
 sendJSONandExit( $response );
 
 ?>
