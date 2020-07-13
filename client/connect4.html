@@ -54,7 +54,6 @@ $( window ).on("load", function()
     //klikom na gumb start serveru se šalje ime
     $( "#start" ).on( "click", function(e)
     {
-        $( "#start" ).hide();
         if (timer !== undefined) stop_timer();
         $("#cnv").remove();
         $("#divinfo").hide();
@@ -66,9 +65,7 @@ $( window ).on("load", function()
                 return;
             }
             ime = $("#ime").val();
-            console.log(ime);
-            $("#divime").hide();
-            $("#start").val("Nova igra");
+            //$("#start").val("Nova igra");
         }
         //$("#poruka").html("Tražim drugog igrača...");
         //šaljem ime
@@ -85,6 +82,9 @@ $( window ).on("load", function()
                 console.log(data);
                 if (data.ok)
                 {
+                    $( "#start" ).hide();
+                    //console.log(ime);
+                    $("#divime").hide();
                     biranje_igraca();
                 }
                 else
@@ -104,7 +104,7 @@ $( window ).on("load", function()
     //šaljem username, primam jesam li odabran i popis slobodnih igrača
     function biranje_igraca()
     {
-        console.log("osjvezavanje popisa igraca");
+        //console.log("osjvezavanje popisa igraca");
         $.ajax(
         {
             type: 'GET',
@@ -136,7 +136,11 @@ $( window ).on("load", function()
                                     .on("click", klikNaIgraca)
                             );
                     });
-                    ff = setTimeout(biranje_igraca, 1000);
+                    //treba se opet pozvati ova funkcija nakon nekog vremena - 1 sec
+                    //console.log("prije timeout");
+                    //biranje_igraca();//ff = setTimeout(biranje_igraca, 1);
+                    //nije dobro, stalno se poziva, treba sleep
+                    //console.log("nakon timeout");
                 }
             },
             error: function( xhr, status )//mozda treba timeout obraditi

@@ -58,9 +58,9 @@ function cleanup()
     // priprema naredbe za brisanje
     $st = $db->prepare( 'DELETE FROM connect4 WHERE :current - timestamp > :max_time AND in_game=0');
 
-    // brisemo sve koji nisu u igri i neaktivni su vec 10 min
+    // brisemo sve koji nisu u igri i neaktivni su vec 1 min
     $current = time();
-    $max_time = 1000*60; // 1 min
+    $max_time = 60; // 1 min = 60 sec
 	$st->execute( array( 'current' => $current, 'max_time' => $max_time ) );
 }
 
