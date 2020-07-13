@@ -23,25 +23,25 @@ function sendJSONandExit( $message )
 
 function update_timestamp($username)
 {
-    // spajanje na bazu podataka
-    $db = DB::getConnection();
+    // // spajanje na bazu podataka
+    // $db = DB::getConnection();
 
-    // dohvacamo sve retke s nasim username-om
-	try
-	{
-		$st = $db->prepare( 'SELECT username FROM connect4 WHERE username=:username' );
-		$st->execute( array( 'username' => $username ) );
-	}
-	catch( PDOException $e ) { return; }
+    // // dohvacamo sve retke s nasim username-om
+	// try
+	// {
+	// 	$st = $db->prepare( 'SELECT username FROM connect4 WHERE username=:username' );
+	// 	$st->execute( array( 'username' => $username ) );
+	// }
+	// catch( PDOException $e ) { return; }
 
-	$row = $st->fetch();
+	// $row = $st->fetch();
 
-	if( $row === false )
-	{
-		// nema nas u bazi
-		return true;
-	}
-	else
+	// if( $row === false )
+	// {
+	// 	// nema nas u bazi
+	// 	return true;
+	// }
+	// else
 	{
         $timestamp = time();
 		$st = $db->prepare( 'UPDATE connect4 SET timestamp=:timestamp WHERE username=:username' );
