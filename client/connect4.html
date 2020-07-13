@@ -108,7 +108,7 @@ $( window ).on("load", function()
     } );
 
     //šaljem username, primam jesam li odabran i popis slobodnih igrača
-    biranje_igraca = function ()
+    function biranje_igraca()
     {
         console.log("osjvezavanje popisa igraca");
         $.ajax(
@@ -164,6 +164,7 @@ $( window ).on("load", function()
 
     function klikNaIgraca(e)
     {
+        clearTimeout(ff);
         opponent = $(this).html();
         $.ajax(
         {
@@ -482,7 +483,7 @@ $( window ).on("load", function()
                 mojred = false;//onemogući potez
                 $( "#start" ).show();
             }
-        }, 800);//800
+        }, 250);//800
     }
     function stop_timer()
     {

@@ -26,22 +26,22 @@ function update_timestamp($username)
     // spajanje na bazu podataka
     $db = DB::getConnection();
 
-    // // dohvacamo sve retke s nasim username-om
-	// try
-	// {
-	// 	$st = $db->prepare( 'SELECT username FROM connect4 WHERE username=:username' );
-	// 	$st->execute( array( 'username' => $username ) );
-	// }
-	// catch( PDOException $e ) { return; }
+    // dohvacamo sve retke s nasim username-om
+	try
+	{
+		$st = $db->prepare( 'SELECT username FROM connect4 WHERE username=:username' );
+		$st->execute( array( 'username' => $username ) );
+	}
+	catch( PDOException $e ) { return; }
 
-	// $row = $st->fetch();
+	$row = $st->fetch();
 
-	// if( $row === false )
-	// {
-	// 	// nema nas u bazi
-	// 	return true;
-	// }
-	// else
+	if( $row === false )
+	{
+		// nema nas u bazi
+		return true;
+	}
+	else
 	{
         $timestamp = time();
 		$st = $db->prepare( 'UPDATE connect4 SET timestamp=:timestamp WHERE username=:username' );
@@ -56,7 +56,7 @@ function cleanup()
     $db = DB::getConnection();
 
     // priprema naredbe za brisanje
-    $st = $db->prepare( 'DELETE FROM connect4 WHERE (( :current - timestamp) > :max_time ) AND in_game=0');
+    $st = $db->prepare( 'DELETE FROM connect4 WHERE :current - timestamp > :max_time AND in_game=0');
 
     // brisemo sve koji nisu u igri i neaktivni su vec 1 min
     $current = time();

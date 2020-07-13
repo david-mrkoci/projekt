@@ -32,15 +32,15 @@ function is_player_available($player2)
                              WHERE username=:username' );
 		$st->execute( array( 'username' => $player2 ) );
 	}
-	catch( PDOException $e ) { return; }
+	catch( PDOException $e ) { return false; }
 
 	$row = $st->fetch();
 
-    if ( $row[ 'in_game' ] === 0 )
+    if ( $row[ 'in_game' ] == 0 )
     {
         return true;
     }
-    if ( $row[ 'in_game' ] === 1 )
+    else//if ( $row[ 'in_game' ] == 1 )
     {
         return false;
     }
