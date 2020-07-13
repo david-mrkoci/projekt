@@ -50,7 +50,7 @@ function update_timestamp($username)
 }
 
 // brise neaktivne igrace
-function cleaup()
+function cleanup()
 {
     // spajanje na bazu podataka
     $db = DB::getConnection();
@@ -133,6 +133,7 @@ check_opponent($username);
 
 $players = list_players($username);
 $response = [];
+$response['opponent'] = "";//nema opponenta
 $response[ 'players' ] = $players;
 
 sendJSONandExit( $response );

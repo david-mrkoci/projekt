@@ -33,8 +33,8 @@ function is_unique($username)
 	catch( PDOException $e ) { return; }
 
 	$row = $st->fetch();
-
-	if( $row === false )
+	return true;//debug, maknuti liniju
+	if( $row == false )
 	{
 		// nas username nije u bazi, znaci da smo jedinstveni
 		return true;

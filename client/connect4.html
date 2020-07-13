@@ -1,17 +1,8 @@
 <!-- 
-znači:
-klijent šalje ime i dobiva id(isti kao poslano ime zasad),
- mojred(true/false) i uspjeh(true.
  Tada započinje igru (crta ploču).
  Kada klikne na canvas, izračuna se koji je to stupac i na koju visinu se mora ubaciti.
 Gleda je li pobijedio i onda šalje id, kraj(true/false), row, col serveru i čeka
 na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
- -->
-
- <!--
-     Napisana funkcija show_timer()
-     Svaki put kad se mijenja poruka u "Vi ste na potezu"
-     pokazuje se timer i pocinje odbrojavati od 120
  -->
 
 <!DOCTYPE html>
@@ -55,6 +46,7 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
     var kraj = false;
     var ime = undefined;
     var timer;//mora bit globalan da se moze stopirat
+    var ff;
 
 $( window ).on("load", function()
 {
@@ -99,18 +91,6 @@ $( window ).on("load", function()
                 {
                     alert("Ime " + ime + " već postoji");
                 }
-
-
-                // id = data.id;
-                // mojred = data.mojred;
-
-
-                // //jaboja = data.boja;
-                // //protivnikboja = (jaboja === "red" ? "yellow" : "red");
-                // jaboja = "red"; protivnikboja = "yellow";
-                // igra();
-
-                // $("#divinfo").show();
             },
             error: function( xhr, status )
             {
@@ -124,6 +104,7 @@ $( window ).on("load", function()
     //šaljem username, primam jesam li odabran i popis slobodnih igrača
     function biranje_igraca()
     {
+        console.log("osjvezavanje popisa igraca");
         $.ajax(
         {
             type: 'GET',
@@ -134,7 +115,7 @@ $( window ).on("load", function()
             },
             success: function( data )
             {
-                if (data.opponent !== None)//netko me je odabrao, mozda drugacija detekcija
+                if (data.opponent !== "")//netko me je odabrao, mozda drugacija detekcija
                 {
                     id = data.id;
                     mojred = data.mojred;
@@ -143,17 +124,19 @@ $( window ).on("load", function()
                 }
                 else
                 {
+                    $("#igraci").empty();
                     //$("#igraci").html(data.players.join("<br>"))
                     data.players.forEach( function (igrac){
-                        $("#igraci").append(
-                            $("<li>")
-                                .html(igrac)
-                                .attr("class", "igrac")
-                                .attr("id", igrac)
-                                .on("click", klikNaIgraca)
-                        );
+                        if (igrac !== ime)
+                            $("#igraci").append(
+                                $("<li>")
+                                    .html(igrac)
+                                    .attr("class", "igrac")
+                                    .attr("id", igrac)
+                                    .on("click", klikNaIgraca)
+                            );
                     });
-                    setTimeout(biranje_igraca, 1000);
+                    ff = setTimeout(biranje_igraca, 1000);
                 }
             },
             error: function( xhr, status )//mozda treba timeout obraditi
@@ -170,18 +153,25 @@ $( window ).on("load", function()
         $.ajax(
         {
             type: 'GET',
-            url: "../server/players.php",
+            url: "../server/matchmaking.php",
             data:
             {
-                username: ime,
-                opponent: opponent,
+                player1: ime,
+                player2: opponent,
                 id: ime + "_" + opponent
             },
             success: function( data )
             {
-                mojred = data.mojred
-                jaboja = "red"; protivnikboja = "yellow";
-                igra();
+                if (data.ok) 
+                {
+                    mojred = true;//data.mojred
+                    jaboja = "red"; protivnikboja = "yellow";
+                    igra();
+                }
+                else
+                {
+                    biranje_igraca();
+                }
             },
             error: function( xhr, status )//mozda treba timeout obraditi
             {
