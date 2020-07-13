@@ -31,19 +31,18 @@ function update_timestamp($username)
 	}
 	catch( PDOException $e ) { return; }
 
-	$row = $st->fetch();
-
-	if( $row === false )
-	{
-		// nema nas u bazi
-		return true;
-	}
-	else
+	if ($row = $st->fetch() )
 	{
         $timestamp = time();
 		$st = $db->prepare( 'UPDATE connect4 SET timestamp= :timestamp WHERE username= :username' );
 		$st->execute( array( 'username' => $username, 'timestamp' => $timestamp ) );
 	}
+	else
+	{
+		// nema nas u bazi
+		return true;
+	}
+
 }
 
 // brise protivnika, game ID i postavlja in_game na 0

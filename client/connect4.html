@@ -15,6 +15,8 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
 <body>
     <h1>Connect four</h1>
 
+    <h3 id="prikaz_ime"></h3>
+
     <br>
     <div id="divime">
         Korisničko ime: <input type="text" id="ime"><br>
@@ -24,6 +26,7 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
 
     <h3 id="poruka"></h3>
     <div id="divinfo">
+        Protivnik: <label id="labelprotivnik"></label><br>
         <label id="labelvrijeme">Preostalo vrijeme za potez: </label>
         <label id="timer"></label>
     </div>
@@ -46,7 +49,7 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
     var kraj = false;
     var ime = undefined;
     var timer;//mora bit globalan da se moze stopirat
-    var ff;
+    var interval;
 
 $( window ).on("load", function()
 {
@@ -82,14 +85,17 @@ $( window ).on("load", function()
                 console.log(data);
                 if (data.ok)
                 {
+                    $("#prikaz_ime").html(ime);
                     $( "#start" ).hide();
                     //console.log(ime);
                     $("#divime").hide();
+                    //biranje_igraca();//interval = setInterval(biranje_igraca, 1000);
                     biranje_igraca();
                 }
                 else
                 {
                     alert("Ime " + ime + " već postoji");
+                    ime = undefined;
                 }
             },
             error: function( xhr, status )
@@ -102,9 +108,9 @@ $( window ).on("load", function()
     } );
 
     //šaljem username, primam jesam li odabran i popis slobodnih igrača
-    function biranje_igraca()
+    biranje_igraca = function ()
     {
-        //console.log("osjvezavanje popisa igraca");
+        console.log("osjvezavanje popisa igraca");
         $.ajax(
         {
             type: 'GET',
@@ -117,6 +123,8 @@ $( window ).on("load", function()
             {
                 if (data.opponent !== "")//netko me je odabrao, mozda drugacija detekcija
                 {
+                    clearTimeout(ff);
+                    $("labelprotivnik").html(data.opponent);
                     id = data.id;
                     mojred = data.mojred;
                     jaboja = "red"; protivnikboja = "yellow";
@@ -138,9 +146,12 @@ $( window ).on("load", function()
                     });
                     //treba se opet pozvati ova funkcija nakon nekog vremena - 1 sec
                     //console.log("prije timeout");
-                    //biranje_igraca();//ff = setTimeout(biranje_igraca, 1);
+                    //biranje_igraca();
+                    ff = setTimeout(biranje_igraca, 5000);//vratiti 1000 ili manje
                     //nije dobro, stalno se poziva, treba sleep
                     //console.log("nakon timeout");
+
+                    //zoviNakonSekunde();
                 }
             },
             error: function( xhr, status )//mozda treba timeout obraditi
@@ -168,6 +179,7 @@ $( window ).on("load", function()
             {
                 if (data.ok) 
                 {
+                    $("labelprotivnik").html(opponent)
                     mojred = true;//data.mojred
                     jaboja = "red"; protivnikboja = "yellow";
                     igra();
@@ -470,7 +482,7 @@ $( window ).on("load", function()
                 mojred = false;//onemogući potez
                 $( "#start" ).show();
             }
-        }, 1000);
+        }, 800);//800
     }
     function stop_timer()
     {
