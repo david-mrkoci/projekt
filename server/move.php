@@ -76,6 +76,8 @@ if( $id !== '' && $col !== '' && $row !== '' && $kraj !== '' )
     }
     else
         file_put_contents( $filename, $my_move);
+    if ($kraj === "true")
+        sendJSONandExit("gotovo");
 
     // kada je zadnji put promjenjena datoteka s potezima?
     $currentmodif = filemtime( $filename );

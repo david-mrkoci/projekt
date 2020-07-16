@@ -66,6 +66,7 @@ $username = isset($_GET[ 'ime' ]) ? $_GET[ 'ime' ] : '';
 update_timestamp($username);
 cleaup($username);
 
+$response="nebitno";
 sendJSONandExit( $response );
 
 ?>
