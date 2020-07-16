@@ -105,7 +105,7 @@ function list_players($username)
 	try
 	{
 		$st = $db->prepare( 'SELECT username FROM connect4 
-                             WHERE username != :username' );
+                             WHERE in_game != 1 AND username != :username' );
 		$st->execute( array( 'username' => $username ) );
 	}
     catch( PDOException $e ) { return; }
