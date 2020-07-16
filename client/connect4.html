@@ -6,7 +6,7 @@ na odgovor koji znači potez drugog igrača. Dobiva od servera kraj, row i col.
 
 
 
-treba: na kraju igre obrisati opponent i to
+igrači se odabiru klikom
  -->
 
 <!DOCTYPE html>
@@ -37,7 +37,6 @@ treba: na kraju igre obrisati opponent i to
     </div>
 
     <ul id="igraci">
-
     </ul>
 
     <script>
@@ -75,9 +74,7 @@ $( window ).on("load", function()
                 return;
             }
             ime = $("#ime").val();
-            //$("#start").val("Nova igra");
         }
-        //$("#poruka").html("Tražim drugog igrača...");
         //šaljem ime
         $.ajax(
         {
@@ -94,10 +91,9 @@ $( window ).on("load", function()
                 {
                     $("#prikaz_ime").html(ime);
                     $( "#start" ).hide();
-                    //console.log(ime);
-                    $("#divime").hide();
-                    $("#igraci").show();
-                    biranje_igraca();
+                    $("#divime").hide();//forma za ime više ne treba nikad (do refresha)
+                    $("#igraci").show();//pokazi popis
+                    biranje_igraca();//dohvati popis i omoguci biranje
                 }
                 else
                 {
@@ -114,10 +110,12 @@ $( window ).on("load", function()
         
     } );
 
+    //ova funkcija se zove svakih 500 milisekundi 
     //šaljem username, primam jesam li odabran i popis slobodnih igrača
+    //ovdje i provjeravam jesam li odabrao nekog
     function biranje_igraca()
     {
-        console.log("osjvezavanje popisa igraca");
+        //console.log("osjvezavanje popisa igraca");
         $.ajax(
         {
             type: 'GET',
@@ -129,39 +127,42 @@ $( window ).on("load", function()
             success: function( data )
             {
                 console.log(data);
-                if (data.opponent !== "")//netko me je odabrao, mozda drugacija detekcija
+                if (data.opponent !== "")//netko me je odabrao
                 {
                     //console.log("opponent me je izabrao");
                     clearTimeout(ff);
                     $("#labelprotivnik").html(data.opponent);
                     id = data.ID;
-                    mojred = data.mojred;
+                    mojred = data.mojred;//uvijek ce biti false, na redu je onaj koji odabire protivnika
                     jaboja = "red"; protivnikboja = "yellow";
                     igra();
                 }
                 else if (opponent !== false)//ja sam odabrao nekoga
                 {
+                    clearTimeout(ff);
                     saljiodabrano();
                 }
                 else
                 {
                     //console.log("nitko me nije izabrao");
+                    //updejtaj popis
                     $("#igraci").empty();
-                    //$("#igraci").html(data.players.join("<br>"))
+                    $("#igraci").append("Slobodni igrači:");
                     data.players.forEach( function (igrac){
                         if (igrac !== ime)
                             $("#igraci").append(
                                 $("<li>")
-                                    .html(igrac)
-                                    .attr("class", "igrac")
-                                    .attr("id", igrac)
-                                    .on("click", klikNaIgraca)
+                                    //.append("<a>")
+                                        .html(igrac)
+                                        .attr("class", "igrac")
+                                        .attr("id", igrac)
+                                        .on("click", klikNaIgraca)
                             );
                     });
-                    ff = setTimeout(biranje_igraca, 500);//vratiti 1000 ili manje
+                    ff = setTimeout(biranje_igraca, 500);//update svakih pola sekunde
                 }
             },
-            error: function( xhr, status )//mozda treba timeout obraditi
+            error: function( xhr, status )
             {
                 if( status !== null )
                     console.log( "Greška prilikom Ajax poziva: " + status );
@@ -193,8 +194,8 @@ $( window ).on("load", function()
                 if (data.ok) 
                 {
                     $("#labelprotivnik").html(opponent);
-                    mojred = true;//data.mojred
-                    jaboja = "red"; protivnikboja = "yellow";
+                    mojred = true;//uvijek je na redu onaj koji odabere protivnika
+                    jaboja = "red"; protivnikboja = "yellow";//uvijek sam ja sebi crven, protivnik žuti
                     igra();
                 }
                 else
@@ -204,7 +205,7 @@ $( window ).on("load", function()
                 }
                 opponent = false;
             },
-            error: function( xhr, status )//mozda treba timeout obraditi
+            error: function( xhr, status )
             {
                 if( status !== null )
                     console.log( "Greška prilikom Ajax poziva: " + status );
@@ -236,17 +237,11 @@ $( window ).on("load", function()
         show_timer();
         if (!mojred)//ako nije moj red, moram cekat potez suigrača, šaljem dummy potez
         {
-            console.log("dummy potez");
-            console.log({
-                    id: id,
-                    row: -1,
-                    col: -1,
-                    kraj: false
-                });
+            //console.log("dummy potez");
             $.ajax(//čekam potez drugog igrača
             {
                 type: 'GET',
-                url: "../server/move.php", //mozda druga skripta
+                url: "../server/move.php",
                 data:
                 {
                     id: id,
@@ -272,7 +267,7 @@ $( window ).on("load", function()
                         show_timer();
                     }
                 },
-                error: function( xhr, status )//mozda treba timeout obraditi
+                error: function( xhr, status )
                 {
                     if( status !== null )
                         console.log( "Greška prilikom Ajax poziva: " + status );
@@ -290,7 +285,7 @@ $( window ).on("load", function()
             y = e.clientY - rect.top;
         col= Math.floor(x/blockwidth);// stupac na koji je kliknuto
         row= topRow(col);//nađi redak na koji mora ići ide žeton
-        if (row < 0)//nema mjesta u tom stupcu
+        if (row < 0)//nema mjesta u tom stupcu => ništa se ne događa
             return;
         console.log("ubacujem na polje: ", row, col);
         if (timer !== undefined) stop_timer();
@@ -312,7 +307,7 @@ $( window ).on("load", function()
         $.ajax(//šaljem svoj potez i čekam potez drugog igrača
         {
             type: 'GET',
-            url: "../server/move.php", //mozda druga skripta
+            url: "../server/move.php",
             data:
             {
                 id: id,
@@ -329,10 +324,8 @@ $( window ).on("load", function()
                     if (data.hasOwnProperty("istekloVrijeme") && data.istekloVrijeme)
                     {
                         console.log("pobjeda - protivnik napustio igru");
-                        //alert("POBJEDILI STE! Protivnik je napustio igru");
                         $("#poruka").html("POBJEDILI STE! Protivnik je napustio igru");
                         $( "#gumbzapopis" ).show();
-                        //pozovi_cleanup();
 
                     }
                     else 
@@ -341,10 +334,8 @@ $( window ).on("load", function()
                         if (data.kraj) 
                         {
                             console.log("poraz");
-                            //alert("IZGUBILI STE!");
                             $("#poruka").html("IZGUBILI STE!");
                             $( "#gumbzapopis" ).show();
-                            //pozovi_cleanup();
                         }
                         else 
                         {
@@ -353,10 +344,6 @@ $( window ).on("load", function()
                             show_timer();
                         }
                     }
-                }
-                else
-                {
-                    //pozovi_cleanup();
                 }
             },
             error: function( xhr, status )
@@ -479,6 +466,7 @@ $( window ).on("load", function()
         ctx.stroke();
     }
 
+    //funkcija za odbrojavanje 120 sekundi za potez
     function show_timer()
     {
         // vrijeme do kojeg odbrojavamo (imamo 2 minute za potez)
@@ -503,17 +491,18 @@ $( window ).on("load", function()
                 $("#timer").html("0");
                 if (mojred) {
                     $("#poruka").html("IZGUBILI STE! Vrijeme za vaš potez je isteklo.");
-                    //pozovi_cleanup();
                 }
                 mojred = false;//onemogući potez
                 $( "#gumbzapopis" ).show();
             }
-        }, 250);//800
+        }, 250);
     }
     function stop_timer()
     {
         clearInterval(timer);
     }
+
+    //pva funkcija samo javlja bazi da nisam više u igri
     function pozovi_cleanup()
     {
         $.ajax(
@@ -528,7 +517,7 @@ $( window ).on("load", function()
             {
                 ;
             },
-            error: function( xhr, status )//mozda treba timeout obraditi
+            error: function( xhr, status )
             {
                 if( status !== null )
                     console.log( "Greška prilikom Ajax poziva: " + status );
