@@ -214,6 +214,7 @@ $( window ).on("load", function()
            //ploca je dimenzija nRows x nCols 
            //undefined na svakom mjestu
         }    
+        $("#poruka").show();
         if (mojred)
         {
             $("#poruka").html("Vi ste na potezu.");
@@ -322,7 +323,7 @@ $( window ).on("load", function()
                         //alert("POBJEDILI STE! Protivnik je napustio igru");
                         $("#poruka").html("POBJEDILI STE! Protivnik je napustio igru");
                         $( "#gumbzapopis" ).show();
-                        pozovi_cleanup();
+                        //pozovi_cleanup();
 
                     }
                     else 
@@ -334,7 +335,7 @@ $( window ).on("load", function()
                             //alert("IZGUBILI STE!");
                             $("#poruka").html("IZGUBILI STE!");
                             $( "#gumbzapopis" ).show();
-                            pozovi_cleanup();
+                            //pozovi_cleanup();
                         }
                         else 
                         {
@@ -346,7 +347,7 @@ $( window ).on("load", function()
                 }
                 else
                 {
-                    pozovi_cleanup();
+                    //pozovi_cleanup();
                 }
             },
             error: function( xhr, status )
@@ -493,7 +494,7 @@ $( window ).on("load", function()
                 $("#timer").html("0");
                 if (mojred) {
                     $("#poruka").html("IZGUBILI STE! Vrijeme za vaš potez je isteklo.");
-                    pozovi_cleanup();
+                    //pozovi_cleanup();
                 }
                 mojred = false;//onemogući potez
                 $( "#gumbzapopis" ).show();
@@ -528,8 +529,10 @@ $( window ).on("load", function()
 
     function pokazi_popis()
     {
+        pozovi_cleanup()
         $("#cnv").remove();
         $("#divinfo").hide();
+        $("#poruka").hide();
         $("#igraci").show();
         biranje_igraca();
     }

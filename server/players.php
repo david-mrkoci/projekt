@@ -55,12 +55,23 @@ function cleanup()
     // spajanje na bazu podataka
     $db = DB::getConnection();
 
+    ######za igrače koji čekaju na protivnika limit je 60 sekundi
     // priprema naredbe za brisanje
     $st = $db->prepare( 'DELETE FROM connect4 WHERE :current - tstamp > :max_time AND in_game=0');
 
     // brisemo sve koji nisu u igri i neaktivni su vec 1 min
     $current = time();
-    $max_time = 60; // 10 sec
+    $max_time = 60; // 60 sec
+    $st->execute( array( 'current' => $current, 'max_time' => $max_time ) );
+    
+
+    ###za igrače u igri limit je jedan dan
+    // priprema naredbe za brisanje
+    $st = $db->prepare( 'DELETE FROM connect4 WHERE :current - tstamp > :max_time AND in_game=1');
+
+    // brisemo sve koji su u igri i neaktivni su vec 1 dan
+    $current = time();
+    $max_time = 60*60*24; // 60 sec
 	$st->execute( array( 'current' => $current, 'max_time' => $max_time ) );
 }
 
